@@ -1,0 +1,77 @@
+appName: cosmos-exporter
+networkType: mainnet
+replicas: 1
+
+appImage:
+  repo: ghcr.io/p2p-org/rcosmos-exporter
+  pullPolicy: Always
+  tag: &appTag v0.2.4
+
+appEnv:
+  - name: LOGGING_LEVEL
+    value: DEBUG
+  - name: PROMETHEUS_IP
+    value: 0.0.0.0
+  - name: PROMETHEUS_PORT
+    value: &cosmosExporterPort 9100
+  - name: BLOCK_WINDOW
+    value: 500
+  - name: VALIDATOR_ADDRESS
+    value: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  - name: REST_ENDPOINTS
+    value: http://127.0.0.1:1317
+  - name: RPC_ENDPOINTS
+    value: http://127.0.0.1:26657
+
+services:
+  type: ClusterIP
+  ports:
+  - name: prometheus
+    port: *cosmosExporterPort
+    targetPort: *cosmosExporterPort
+    protocol: TCP
+
+appProbes:
+  livenessProbe:
+    tcpSocket:
+      port: *cosmosExporterPort
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: *cosmosExporterPort
+    periodSeconds: 5
+    timeoutSeconds: 1
+    failureThreshold: 3
+
+imagePullSecrets:
+- name: registry
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: blch
+          operator: In
+          values:
+          - "true"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+imageCredentials:
+  registry: ghcr.io
+  username: cosmos
+  password: secret
+  email: cosmos-security@p2p.org
