@@ -1,0 +1,33 @@
+{{- range $key, $val := .Values.endpoints }}
+{{- if $val.enabled }}
+{{- $name := printf "%s-%s" $.Release.Name $key }}
+{{- $host := include "host" (dict "context" $ "endpointName" $key) }}
+{{- $tlsSecretName := printf "%s-%s" $host "tls" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default $name $val.ingressName }}-nlb
+  {{- if $val.additionalIngressAnnotations }}
+  annotations:
+    {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}  
+  {{- end }}
+spec:
+  ingressClassName: nginx-nlb
+  rules:
+    - host: {{ $host | quote }}
+      http:
+        paths:
+          - path: {{ default "/" $val.path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $.Release.Name }}-rpc
+                port:
+                  number: {{ $val.servicePort }}              
+  tls:
+  - hosts:
+    - {{ default $host $val.tlsHost | quote }}
+    secretName: {{ default $tlsSecretName $val.tlsSecretName }}
+{{- end }}
+{{- end }}

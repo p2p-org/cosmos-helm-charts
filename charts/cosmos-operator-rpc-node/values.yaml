@@ -1,0 +1,134 @@
+# Default values for RPC nodes
+
+## Pod Specs
+image: "ghcr.io/p2p-org/cosmos-heighliner"
+imageTag: ""
+imagePullSecrets: "github-secret"
+replicas: 1
+maxUnavailable: ""
+storage: ""
+storageClassName: "oci-bv"
+# Note: Key to be used for node affinity
+nodeSelectorKey: ""
+# Note: [Optional] Additional matches for node affinity
+affinityAdditionalMatches: {}
+# Note: [Optional] Label to be used for node selector
+nodeSelectorLabel: {}
+# Note: [Optional] Enable podAntiAffinity to run only one pod per hostname
+podAntiAffinityPerNode: false
+volumeRetainPolicy: "Retain"
+
+resources: {}
+
+# Note: Optional additional configuration for the pod template
+initContainers: []
+cosmosNodeLabels: {}
+cosmosNodeAnnotations: {}
+priorityClassName: ""
+
+# Note: Optional additional configuration for the services
+service:
+  maxP2PExternalAddresses: 1
+  p2pTemplate:
+    metadata:
+      labels: {}
+      annotations: {}
+    type: ClusterIP
+
+## Chain Specs
+blch:
+  # NOTE: Whether the node is a full or archive node. Options are "full" or "archive"
+  nodeType: ""
+  id: ""
+  network: ""
+  binary: ""
+  skipInvariants: true
+  # NOTE: Provide either a genesisURL or snapshotURL for the syncing process
+  genesisURL: ""
+  snapshotURL: ""
+  minGasPrice: ""
+  appOverrides: ""
+  # NOTE: Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
+  addrbookURL: ""
+  # NOTE: Optional additional configuration for the network
+  config:
+    peers: ""
+    seeds: ""
+    overrides: ""
+  additionalStartArgs: ""
+  homeDir: ""
+  # Note: Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
+  pruning:
+    strategy: ""
+    interval: 0
+    keepEvery: 0
+    keepRecent: 0
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  publicRpcEndpoint: ""
+  alerts:
+    enabled: true
+    growingBlockHeightDifference: 25
+    maximumBlockHeightDifference: 100
+    maximumPeerDropPercentage: 25
+    txSuccessRateThreshold: 95
+
+## Ingress Specs
+# Note: Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:
+#   enabled: A boolean value to enable or disable the RPC service.
+#   servicePort: The port number for the RPC service. This is defined by the cosmos-operator and created as part of CosmosFullNode.
+#   path: (Optional) The path to set for the endpoints, default to `/` if not set.
+#   ingressName: (Optional) The name of the ingress resource.
+#   host: (Optional) The host for the ingress.
+#   tlsHost: (Optional) The TLS host for the ingress.
+#   tlsSecretName: (Optional) The name of the TLS secret.
+#   additionalIngressAnnotations: (Optional) Additional annotations for the ingress. For example, you can specify timeouts and cors.
+# Note that some endpoints might need additional overrides to work properly, you can define them as appOverrides under the blch specs.
+endpoints:
+  rpc:
+    enabled: false
+    servicePort: 26657
+    path: "/"
+    ingressName: ""
+    host: ""
+    tlsHost: ""
+    tlsSecretName: ""
+    additionalIngressAnnotations: {}
+  grpc:
+    enabled: false
+    servicePort: 9090
+    path: "/"
+    ingressName: ""
+    host: ""
+    tlsHost: ""
+    tlsSecretName: ""
+    additionalIngressAnnotations: {}
+  ws:
+    enabled: false
+    servicePort: 8546
+    path: "/"
+    ingressName: ""
+    host: ""
+    tlsHost: ""
+    tlsSecretName: ""
+    additionalIngressAnnotations: {}
+  ws-rpc:
+    enabled: false
+    servicePort: 26657
+    path: "/websocket"
+    ingressName: ""
+    host: ""
+    tlsHost: ""
+    tlsSecretName: ""
+    additionalIngressAnnotations: {}
+  rest:
+    enabled: false
+    servicePort: 1317
+    path: "/"
+    ingressName: ""
+    host: ""
+    tlsHost: ""
+    tlsSecretName: ""
+    additionalIngressAnnotations: {}

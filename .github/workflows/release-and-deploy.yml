@@ -1,0 +1,194 @@
+name: Release Charts and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changes_detected: ${{ steps.check.outputs.changes_detected }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check for changes in Helm charts
+        id: check
+        run: |
+          # Find all directories containing Chart.yaml
+          chart_dirs=$(find ./charts -name Chart.yaml -exec dirname {} \;)
+
+          changes_detected=false
+          for dir in $chart_dirs; do
+            if git diff --quiet HEAD^ HEAD -- "$dir"; then
+              echo "No changes in $dir"
+            else
+              echo "Changes detected in $dir"
+              changes_detected=true
+              break
+            fi
+          done
+
+          echo "changes_detected=$changes_detected" >> $GITHUB_OUTPUT
+
+  release-charts:
+    needs: check-changes
+    if: needs.check-changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Add dependency repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @semantic-release/git @semantic-release/changelog @semantic-release/exec conventional-changelog-conventionalcommits
+
+      - name: Release charts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p release
+          chart_dirs=$(find ./charts -name Chart.yaml -exec dirname {} \;)
+          for dir in $chart_dirs; do
+            echo "Checking for changes in ${dir}"
+            if git diff --quiet HEAD^ HEAD -- "${dir}"; then
+              echo "No changes in ${dir}, skipping release"
+            else
+              echo "Changes detected in ${dir}, releasing chart"
+              cd "${dir}"
+              export CHART_PATH=$(pwd)
+              export CHART_NAME=$(basename $(pwd))
+              npx semantic-release -e ../../.github/chart-release.config.js
+              helm package . --destination ../release/
+              cd $GITHUB_WORKSPACE
+            fi
+          done
+
+      - name: Upload release as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: release
+
+  generate-index:
+    needs: release-charts
+    if: needs.check-changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Install yq
+        run: |
+          sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Generate Helm repo index and README
+        run: |
+          mkdir -p ./release/images
+          cp -r docs/images/* ./release/images/
+          helm repo index ./release --url https://${{ github.repository_owner }}.github.io/cosmos-helm-charts/
+
+          # Get list of charts
+          charts=$(find ./charts -name Chart.yaml -exec dirname {} \; | sed 's/.\///')
+
+          # Generate chart info
+          chart_info=""
+          for chart in $charts; do
+            if [ -f "${chart}/Chart.yaml" ]; then
+              name=$(yq e '.name' ${chart}/Chart.yaml)
+              # Get the latest tag for this chart, sorting by version number
+              version=$(git tag -l "${name}-v*" | sort -V | tail -n 1)
+              version=${version#${name}-v}
+              description=$(yq e '.description' ${chart}/Chart.yaml)
+              chart_info+="<div class=\"chart\">"
+              chart_info+="<h3>${name}</h3>"
+              chart_info+="<p><strong>Version:</strong> ${version}</p>"
+              chart_info+="<p><strong>Description:</strong> ${description}</p>"
+              chart_info+="</div>"
+            fi
+          done
+
+          # Use the template to generate index.html
+          cp docs/index.html.template ./release/index.html
+          sed -i "s|{{GITHUB_REPOSITORY_OWNER}}|${GITHUB_REPOSITORY_OWNER}|g" ./release/index.html
+          sed -i "s|{{AVAILABLE_CHARTS}}|${chart_info}|g" ./release/index.html
+
+      - name: Upload release as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: release
+
+  deploy:
+    needs: generate-index
+    if: needs.check-changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release
+          path: release
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./release
+          force_orphan: true
+
+  verify-files:
+    needs: deploy
+    if: needs.check-changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release
+          path: release
+
+      - name: Verify files
+        run: |
+          ls -l ./release
+          echo "Content of index.yaml:"
+          cat ./release/index.yaml
+          echo "Content of index.html:"
+          cat ./release/index.html

@@ -1,0 +1,129 @@
+# Default values for cosmos-operator-rpc-node
+
+
+replicas: 1
+maxUnavailable: 1
+image: "ghcr.io/p2p-org/cosmos-operator-rpc-node"
+imageTag: "v1.0.0"
+imagePullSecrets:
+  - name: regcred
+storage: "100Gi"
+storageClassName: "standard"
+nodeSelectorKey: "cosmos-node"
+affinityAdditionalMatches:
+  - key: "node-type"
+    operator: In
+    values:
+      - "rpc"
+nodeSelectorLabel:
+  node-role: "cosmos-rpc"
+podAntiAffinityPerNode: true
+volumeRetainPolicy: "Retain"
+
+resources:
+  limits:
+    cpu: 2
+    memory: 4Gi
+  requests:
+    cpu: 1
+    memory: 2Gi
+
+initContainers:
+  init-data:
+    image: busybox
+    command: ['sh', '-c', 'echo "Initializing data" && sleep 10']
+
+cosmosNodeLabels:
+  app: cosmos-rpc
+cosmosNodeAnnotations:
+  prometheus.io/scrape: "true"
+
+priorityClassName: "high-priority"
+
+blch:
+  nodeType: "full"
+  id: "cosmoshub-4"
+  network: "cosmos"
+  binary: "gaiad"
+  skipInvariants: true
+  genesisURL: "https://github.com/cosmos/mainnet/raw/master/genesis.cosmoshub-4.json.gz"
+  snapshotURL: "https://snapshots.cosmos.network/cosmoshub-4-pruned.tar.lz4"
+  minGasPrice: "0.025uatom"
+  appOverrides: |
+    minimum-gas-prices = "0.025uatom"
+    pruning = "custom"
+  addrbookURL: "https://github.com/cosmos/mainnet/raw/master/cosmoshub-4/addrbook.json"
+  config:
+    seeds: "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:14956"
+    peers: "d72b3011ed46d783e369fdf8ae2055b99a1e5074@65.21.34.226:26656"
+    overrides: |
+      [p2p]
+      max_num_inbound_peers = 100
+      max_num_outbound_peers = 50
+  additionalStartArgs:
+    - "--x-crisis-skip-assert-invariants"
+  homeDir: "/root/.gaia"
+  pruning:
+    strategy: "custom"
+    interval: 10
+    keepEvery: 0
+    keepRecent: 100
+
+additionalServiceConfig:
+  type: LoadBalancer
+  ports:
+    - port: 26656
+      targetPort: 26656
+      name: p2p
+
+endpoints:
+  rpc:
+    enabled: true
+    servicePort: 26657
+    path: "/"
+    ingressName: "rpc-ingress"
+    host: "rpc.example.com"
+    tlsHost: "rpc.example.com"
+    tlsSecretName: "rpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+  grpc:
+    enabled: true
+    servicePort: 9090
+    path: "/"
+    ingressName: "grpc-ingress"
+    host: "grpc.example.com"
+    tlsHost: "grpc.example.com"
+    tlsSecretName: "grpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+  ws:
+    enabled: true
+    servicePort: 8546
+    path: "/"
+    ingressName: "ws-ingress"
+    host: "ws.example.com"
+    tlsHost: "ws.example.com"
+    tlsSecretName: "ws-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+  ws-rpc:
+    enabled: true
+    servicePort: 26657
+    path: "/websocket"
+    ingressName: "ws-rpc-ingress"
+    host: "ws-rpc.example.com"
+    tlsHost: "ws-rpc.example.com"
+    tlsSecretName: "ws-rpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+  rest:
+    enabled: true
+    servicePort: 1317
+    path: "/"
+    ingressName: "rest-ingress"
+    host: "rest.example.com"
+    tlsHost: "rest.example.com"
+    tlsSecretName: "rest-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx

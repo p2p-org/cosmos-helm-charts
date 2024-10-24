@@ -1,0 +1,184 @@
+# Default values for allora-worker.
+
+replicaCount: 1
+
+
+# Container configurations
+containers:
+  main:
+    image: "your-image-repository:tag"
+    ports:
+      - name: http
+        containerPort: 8080
+        protocol: TCP
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+    command: ["./start.sh"]
+    args: ["--config", "/app/config.yaml"]
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    volumeMounts:
+      - name: data
+        mountPath: /app/data
+    env:
+      - name: ENV_VAR_1
+        value: "value1"
+      - name: ENV_VAR_2
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: secret-key
+    envFrom:
+      - secretRef:
+          name: my-secret-env
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 80
+      targetPort: 8080
+
+imagePullSecrets:
+  - name: regcred
+
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+  size: "1Gi"
+
+# External Secrets configuration
+externalSecrets:
+  - name: my-external-secret
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: secretstore-sample
+    target:
+      name: my-k8s-secret
+      creationPolicy: Owner
+    data:
+      - secretKey: username
+        remoteRef:
+          key: /path/to/secret
+          property: username
+      - secretKey: password
+        remoteRef:
+          key: /path/to/secret
+          property: password
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: your-domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: main
+          servicePort: 80
+  tls:
+    - secretName: your-domain-tls
+      hosts:
+        - your-domain.com
+
+# Affinity settings
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/e2e-az-name
+              operator: In
+              values:
+                - e2e-az1
+                - e2e-az2
+
+# Node selector
+nodeSelector:
+  disktype: ssd
+
+# Tolerations
+tolerations:
+  - key: "key1"
+    operator: "Equal"
+    value: "value1"
+    effect: "NoSchedule"
+
+# Additional labels
+labels:
+  environment: production
+  team: allora
+
+# Pod annotations
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+
+# Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 2000
+
+# Security context
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Image pull policy
+imagePullPolicy: IfNotPresent
+
+# Additional volumes
+volumes:
+  - name: config
+    configMap:
+      name: allora-worker-config
+
+# Additional volumes
+additionalVolumes:
+  - name: extra-config
+    configMap:
+      name: allora-worker-extra-config
+
+# Init containers
+initContainers:
+  init-db:
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo "The app is running!" && sleep 10']
+    volumeMounts:
+      - name: data
+        mountPath: /data
+
+# Deployment strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0

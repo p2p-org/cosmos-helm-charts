@@ -1,0 +1,136 @@
+---
+apiVersion: cosmos.strange.love/v1
+kind: CosmosFullNode
+metadata:
+  name: {{ .Release.Name }}
+  {{ if .Values.cosmosNodeLabels }}
+  labels:
+    {{- toYaml .Values.cosmosNodeLabels | nindent 4 }}
+  {{ end }}
+  {{ if .Values.cosmosNodeAnnotations }}
+  annotations:
+    {{- toYaml .Values.cosmosNodeAnnotations | nindent 4 }}
+  {{ end }}
+
+spec:
+  replicas: {{ .Values.replicas }}
+  {{ if .Values.maxUnavailable }}
+  strategy:
+    maxUnavailable: {{ .Values.maxUnavailable }}
+  {{ end }}
+  chain:
+    app:
+      pruning:
+        {{ if .Values.blch.pruning }}
+        {{ toYaml .Values.blch.pruning | nindent 8 }}
+        {{ else if eq .Values.blch.nodeType "archive" }}
+        strategy: "nothing"
+        {{ else if eq .Values.blch.nodeType "full" }}
+        strategy: "custom"
+        interval: 10
+        keepEvery: 0
+        keepRecent: 100
+        {{ end }}
+      minGasPrice: {{ .Values.blch.minGasPrice }}
+      {{- if  .Values.blch.appOverrides }}
+      overrides: |-
+{{ .Values.blch.appOverrides | nindent 8 }}
+      {{- end }}
+    network: {{ .Values.blch.network }}
+    chainID: {{ .Values.blch.id }}
+    binary: {{ .Values.blch.binary }}
+    {{ if .Values.blch.skipInvariants }}
+    skipInvariants: {{ .Values.blch.skipInvariants }}
+    {{ end }}
+    {{ if .Values.blch.homeDir }}
+    homeDir: {{ .Values.blch.homeDir }}
+    {{ end }}
+    {{ if .Values.blch.genesisURL }}
+    genesisURL: {{ .Values.blch.genesisURL }}
+    {{ end }}
+    {{ if .Values.blch.snapshotURL }}
+    snapshotURL: {{ .Values.blch.snapshotURL }}
+    {{ end }}
+    {{ if .Values.blch.additionalStartArgs }}
+    additionalStartArgs: {{ toYaml .Values.blch.additionalStartArgs | nindent 6 }}
+    {{ end }}
+    {{ if .Values.blch.addrbookURL }}
+    addrbookURL: {{ .Values.blch.addrbookURL }}
+    {{ end }}
+    {{ if .Values.blch.config }}
+    config:
+      {{ if .Values.blch.config.seeds }}
+      seeds: {{ .Values.blch.config.seeds }}
+      {{ end }}
+      {{ if .Values.blch.config.peers }}
+      peers: {{ .Values.blch.config.peers }}
+      {{ end }}
+      {{ if .Values.blch.config.overrides }}
+      overrides: |-
+{{ .Values.blch.config.overrides | nindent 8 }}
+      {{ end }}
+    {{ end }}
+  podTemplate:
+    imagePullPolicy: "Always"
+    imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+    image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+    {{ if .Values.resources }}
+    resources:
+      {{ toYaml .Values.resources | nindent 6 }}
+    {{ end }}
+    {{ if .Values.nodeSelectorLabel }}
+    nodeSelector:
+      {{ toYaml .Values.nodeSelectorLabel | nindent 6 }}
+    {{ end }}
+    {{ if .Values.nodeSelectorKey }}
+    affinity:
+    {{- if .Values.podAntiAffinityPerNode }}
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - {{ .Release.Name }}
+          topologyKey: "kubernetes.io/hostname" 
+    {{- end }}
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            {{- if .Values.affinityAdditionalMatches }}
+            {{ toYaml .Values.affinityAdditionalMatches | nindent 12 }}
+            {{- end }}
+            - key: blch
+              operator: In
+              values:
+              - "true"
+            - key: {{ .Values.nodeSelectorKey }}
+              operator: In
+              values:
+              - "true"
+    {{ end }}
+    {{- if .Values.initContainers }}
+    initContainers:
+      {{- range $key, $value := .Values.initContainers }}
+      - name: "{{ $key }}"
+        {{ toYaml $value | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{ if .Values.priorityClassName }}
+    priorityClassName: {{ .Values.priorityClassName }}
+    {{ end }}
+  {{ if .Values.additionalServiceConfig }}
+  service:
+    {{ toYaml .Values.additionalServiceConfig | nindent 4 }}
+  {{ end }}
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: {{ .Values.storage }}
+    storageClassName: {{ .Values.storageClassName }}
+  {{ if .Values.volumeRetainPolicy }}
+  volumeRetentionPolicy: {{ .Values.volumeRetainPolicy }}
+  {{ end }}

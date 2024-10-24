@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Cosmos Helm Charts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #0066cc;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .chart {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px; /* Added 20px bottom margin */
+            max-width: 400px;
+            height: auto;
+        }
+        .badges {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .badges img {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <img src="images/logo.png" alt="P2P Logo" class="logo">
+    <div class="badges">
+        <a href="https://x.com/P2Pvalidator"><img src="https://badgen.net/badge/twitter/@P2Pvalidator/1DA1F2?icon&label" /></a>
+        <a href="https://github.com/p2p-org/cosmos-helm-charts"><img src="https://badgen.net/github/stars/p2p-org/cosmos-helm-charts?icon=github" /></a>
+        <a href="https://github.com/p2p-org/cosmos-helm-charts"><img src="https://badgen.net/github/forks/p2p-org/cosmos-helm-charts?icon=github" /></a>
+    </div>
+    <h1>P2P Cosmos Helm Charts</h1>
+    <p>This repository contains Helm charts for P2P Cosmos projects. These charts are used for deploying and managing various components of the Cosmos ecosystem.</p>
+
+    <h2>Usage</h2>
+    <p>To use these Helm charts, add this repository to your Helm installation:</p>
+    <pre><code>helm repo add p2p-cosmos https://{{GITHUB_REPOSITORY_OWNER}}.github.io/cosmos-helm-charts/
+helm repo update</code></pre>
+    <p>You can then install any of the available charts. For example:</p>
+    <pre><code>helm install my-release p2p-cosmos/chart-name</code></pre>
+
+    <h2>Available Charts</h2>
+    {{AVAILABLE_CHARTS}}
+
+    <h2>Contributing</h2>
+    <p>Contributions are welcome! Please feel free to submit a Pull Request.</p>
+
+    <h2>License</h2>
+    <p>This project is licensed under the MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+
+    <p>For Helm users: <a href="index.yaml">index.yaml</a></p>
+</body>
+</html>
