@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.appName }}
+  labels:
+    {{- include "cosmos-exporter.labels" $ | nindent 4 }}
+    k8s-app: {{ $.Values.appName }}
+spec:
+  replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 10
+  serviceName: "{{ $.Values.appName }}"
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 20%
+  selector:
+    matchLabels:
+      {{- include "cosmos-exporter.selectorLabels" $ | nindent 6 }}
+      k8s-app: {{ $.Values.appName }}
+  template:
+    metadata:
+      labels:
+        {{- include "cosmos-exporter.labels" . | nindent 8 }}
+        k8s-app: {{ $.Values.appName }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+        reloader.stakater.com/auto: "true"
+    spec:
+      containers:
+        - name: {{ $.Values.appName }}
+          image: "{{ $.Values.appImage.repo }}:{{ $.Values.appImage.tag }}"
+          imagePullPolicy: {{ $.Values.appImage.pullPolicy }}
+          env:
+            {{- range $.Values.appEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          ports:
+            {{- range $.Values.services.ports }}
+            - containerPort: {{ .port }}
+              protocol: {{ .protocol }}
+            {{- end }}
+          {{- if $.Values.appProbes }}
+          {{- toYaml $.Values.appProbes | nindent 10 }}
+          {{- end }}
+          {{- with $.Values.appResources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      imagePullSecrets:
+        {{- toYaml $.Values.imagePullSecrets | nindent 8 }}
+      serviceAccountName: {{ include "cosmos-exporter.serviceAccountName" . }}
+      affinity:
+        {{- toYaml $.Values.affinity | nindent 8 }}
+      tolerations:
+        {{- toYaml $.Values.tolerations | nindent 8 }}
