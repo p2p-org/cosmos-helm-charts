@@ -1,0 +1,22 @@
+{{- range $key, $value := .Values.containers }}
+{{- if hasKey $value "service" }}
+{{- if $value.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "namada-indexer.fullname" $ }}-{{ $key }}
+  labels:
+    {{- include "namada-indexer.labels" $ | nindent 4 }}
+spec:
+  type: {{ $value.service.type }}
+  ports:
+    - port: {{ $value.service.port }}
+      targetPort: {{ $value.service.targetPort | default $value.containerPort }}
+      protocol: TCP
+      name: {{ $key }}
+  selector:
+    {{- include "namada-indexer.selectorLabels" $ | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}

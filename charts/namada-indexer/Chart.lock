@@ -1,0 +1,9 @@
+dependencies:
+- name: postgres-operator
+  repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+  version: 1.13.0
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 20.5.0
+digest: sha256:8336dfdf07439b8fb5ff7e54910d67b4833b1a02394bfddb438241eb827c9a17
+generated: "2024-12-11T14:02:20.240034Z"
