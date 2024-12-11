@@ -1,0 +1,172 @@
+replicaCount: 1
+
+# Common configurations in ConfigMaps
+configmaps:
+  config:
+    data:
+      DB_PORT: "5432"
+      DB_NAME: ""
+      TENDERMINT_URL: ""
+
+# PostgreSQL Operator Configuration
+postgresOperator:
+  install:
+    enabled: false
+  enabled: true
+  teamId: ""
+  volume:
+    size: "10Gi"
+    storageClass: ""
+  numberOfInstances: 1
+  users: {}
+  databases: {}
+  version: "15"
+  parameters:
+    max_connections: "100"
+    shared_buffers: "128MB"
+
+externalPostgres:
+  enabled: false
+  host: ""
+  port: "5432"
+  database: ""
+  credentialSecret:
+    name: ""
+    usernameKey: ""
+    passwordKey: ""
+
+# Redis Configuration
+redis:
+  install:
+    enabled: false
+  enabled: false
+  architecture: standalone
+  sentinel:
+    enabled: false
+    masterSet: "mymaster"
+    quorum: 2
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: "8Gi"
+      storageClass: ""
+  master:
+    persistence:
+      enabled: true
+      size: "8Gi"
+      storageClass: ""
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+
+externalRedis:
+  enabled: false
+  host: ""
+  port: "6379"
+
+containerDefaults:
+  resources:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+  envFrom: []
+
+initContainers:
+  init-db:
+    image: "postgres:15-alpine"
+    command: []
+    args: []
+
+containers:
+  debug:
+    image: "postgres:15-alpine"
+    command: []
+    args: []
+
+  chain:
+    image: ""
+    command: []
+    args: []
+
+  governance:
+    image: ""
+    command: []
+    args: []
+
+  pos:
+    image: ""
+    command: []
+    args: []
+
+  rewards:
+    image: ""
+    command: []
+    args: []
+
+  parameters:
+    image: ""
+    command: []
+    args: []
+
+  transactions:
+    image: ""
+    command: []
+    args: []
+
+  webserver:
+    image: ""
+    command: []
+    args: []
+    ports:
+      - name: http
+        containerPort: 5001
+        protocol: TCP
+    service:
+      enabled: false
+      type: ClusterIP
+      port: 80
+      targetPort: 5001
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 5001
+      initialDelaySeconds: 15
+      periodSeconds: 15
+      timeoutSeconds: 10
+      failureThreshold: 3
+      startPeriod: 10
+
+imagePullSecrets: []
+imagePullPolicy: IfNotPresent
+
+podSecurityContext: {}
+
+securityContext: {}
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+serviceAccount:
+  create: true
+  name: ""
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: webserver
+          servicePort: 80
+  tls: []
