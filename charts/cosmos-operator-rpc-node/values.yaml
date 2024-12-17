@@ -21,7 +21,7 @@ volumeRetainPolicy: "Retain"
 resources: {}
 
 # Note: Optional additional configuration for the pod template
-initContainers: []
+initContainers: {}
 cosmosNodeLabels: {}
 cosmosNodeAnnotations: {}
 priorityClassName: ""
