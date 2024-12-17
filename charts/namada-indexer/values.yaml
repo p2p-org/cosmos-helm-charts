@@ -1,0 +1,168 @@
+replicaCount: 1
+
+# If deployed by argocd add sync waves to batch jobs
+argocd:
+  deployment: false
+
+# Common configurations in ConfigMaps
+configmaps:
+  config:
+    data: {}
+
+# PostgreSQL Operator Configuration
+postgresOperator:
+  install:
+    enabled: true
+  enabled: true
+  teamId: ""
+  volume:
+    size: ""
+    storageClass: ""
+  numberOfInstances: 1
+  users: {}
+  databases: {}
+  version: ""
+  parameters: {}
+  resourcePolicy: ""
+
+externalPostgres:
+  enabled: false
+  host: ""
+  port: ""
+  database: ""
+  credentialSecret:
+    name: ""
+    usernameKey: ""
+    passwordKey: ""
+
+# Redis Configuration
+redis:
+  install:
+    enabled: true
+  enabled: true
+  architecture: standalone
+  sentinel:
+    enabled: false
+    masterSet: ""
+    quorum: 2
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: false
+      size: ""
+      storageClass: ""
+      resourcePolicy: ""
+  master:
+    persistence:
+      enabled: false
+      size: ""
+      storageClass: ""
+      resourcePolicy: ""
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+
+externalRedis:
+  enabled: false
+  host: ""
+  port: ""
+
+# Common container defaults
+containerDefaults:
+  resources:
+    limits: {}
+    requests: {}
+  envFrom: []
+
+# Init containers configuration
+initContainers:
+  init-db:
+    image: ""
+    command: []
+    args: []
+
+# Main containers configuration
+containers:
+
+  chain:
+    image: ""
+    command: []
+    args: []
+
+  governance:
+    image: ""
+    command: []
+    args: []
+
+  pos:
+    image: ""
+    command: []
+    args: []
+
+  rewards:
+    image: ""
+    command: []
+    args: []
+
+  parameters:
+    image: ""
+    command: []
+    args: []
+
+  transactions:
+    image: ""
+    command: []
+    args: []
+
+  webserver:
+    image: ""
+    command: []
+    args: []
+    ports:
+      - name: http
+        containerPort: 5001
+        protocol: TCP
+    service:
+      enabled: false
+      type: ClusterIP
+      port: 80
+      targetPort: 5001
+
+# Global configuration
+imagePullSecrets: []
+imagePullPolicy: IfNotPresent
+
+podSecurityContext: {}
+
+securityContext: {}
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+serviceAccount:
+  create: false
+  name: ""
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Resource quotas and limits
+resources: {}
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}

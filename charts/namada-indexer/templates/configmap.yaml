@@ -1,0 +1,21 @@
+{{- $dbConfig := include "namada-indexer.dbConfig" . | fromYaml }}
+{{- $redisConfig := include "namada-indexer.redisConfig" . | fromYaml }}
+{{- range $name, $configmap := .Values.configmaps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "namada-indexer.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "namada-indexer.labels" $ | nindent 4 }}
+data:
+  {{- if $dbConfig }}
+  {{- toYaml $dbConfig | nindent 2 }}
+  {{- end }}
+  {{- if $redisConfig }}
+  {{- toYaml $redisConfig | nindent 2 }}
+  {{- end }}
+  {{- range $key, $value := $configmap.data }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}

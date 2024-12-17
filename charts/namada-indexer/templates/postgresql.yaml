@@ -1,0 +1,44 @@
+{{- if .Values.postgresOperator.enabled }}
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}-db
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+  finalizers:
+    - kubernetes
+  annotations:
+    {{- if .Values.argocd.deployment }}
+    "argocd.argoproj.io/sync-wave": "0"
+    {{- end }}
+spec:
+  teamId: {{ .Values.postgresOperator.teamId }}
+  {{- if .Values.postgresOperator.kubernetes }}
+  kubernetes:
+    {{- toYaml .Values.postgresOperator.kubernetes | nindent 4 }}
+  {{- end }}
+  volume:
+    size: {{ .Values.postgresOperator.volume.size }}
+    {{- if .Values.postgresOperator.volume.storageClass }}
+    storageClass: {{ .Values.postgresOperator.volume.storageClass }}
+    {{- end }}
+  numberOfInstances: {{ .Values.postgresOperator.numberOfInstances }}
+  users:
+    {{- toYaml .Values.postgresOperator.users | nindent 4 }}
+  databases:
+    {{- toYaml .Values.postgresOperator.databases | nindent 4 }}
+  postgresql:
+    version: {{ .Values.postgresOperator.version | quote }}
+    parameters:
+      {{- toYaml .Values.postgresOperator.parameters | nindent 6 }}
+  {{- if .Values.postgresOperator.enableConnectionPooler }}
+  enableConnectionPooler: {{ .Values.postgresOperator.enableConnectionPooler }}
+  {{- end }}
+  {{- if .Values.postgresOperator.enableReplicaConnectionPooler }}
+  enableReplicaConnectionPooler: {{ .Values.postgresOperator.enableReplicaConnectionPooler }}
+  {{- end }}
+  {{- with .Values.postgresOperator.nodeAffinity }}
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

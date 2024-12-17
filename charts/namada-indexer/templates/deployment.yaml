@@ -1,0 +1,188 @@
+{{- include "namada-indexer.validateDbConfig" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+    {{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if .Values.argocd.deployment }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "2"
+  {{- else }}
+  annotations:
+    "helm.sh/hook-weight": "-10"
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "namada-indexer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "namada-indexer.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "namada-indexer.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        {{- range $key, $value := .Values.containers }}
+        - name: {{ $key }}
+          image: {{ $value.image }}
+          imagePullPolicy: {{ $.Values.imagePullPolicy | default "IfNotPresent" }}
+          {{- with $.Values.containerDefaults }}
+          # Apply all defaults first
+          {{- if .command }}
+          command:
+            {{- toYaml .command | nindent 12 }}
+          {{- end }}
+          {{- if .args }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          {{- end }}
+          {{- if .ports }}
+          ports:
+            {{- toYaml .ports | nindent 12 }}
+          {{- end }}
+          {{- if .resources }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+          {{- end }}
+          {{- if .livenessProbe }}
+          livenessProbe:
+            {{- toYaml .livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .readinessProbe }}
+          readinessProbe:
+            {{- toYaml .readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .volumeMounts }}
+          volumeMounts:
+            {{- toYaml .volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- end }}
+
+          # Then apply container-specific overrides
+          {{- if $value.ports }}
+          ports:
+            {{- toYaml $value.ports | nindent 12 }}
+          {{- end }}
+          {{- if $value.command }}
+          command:
+            {{- toYaml $value.command | nindent 12 }}
+          {{- end }}
+          {{- if $value.args }}
+          args:
+            {{- toYaml $value.args | nindent 12 }}
+          {{- end }}
+
+          # Merge envFrom from both defaults and container-specific
+          envFrom:
+            {{- if $.Values.containerDefaults.envFrom }}
+            {{- toYaml $.Values.containerDefaults.envFrom | nindent 12 }}
+            {{- end }}
+            {{- if $value.envFrom }}
+            {{- toYaml $value.envFrom | nindent 12 }}
+            {{- end }}
+            {{- range $.Values.externalSecrets }}
+            - secretRef:
+                name: {{ .target.name }}
+            {{- end }}
+          env:
+            {{- include "namada-indexer.dbEnv" $ | nindent 12 }}
+            {{- with $value.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
+          {{- if $value.volumeMounts }}
+          volumeMounts:
+            {{- toYaml $value.volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- if $value.env }}
+          env:
+            {{- toYaml $value.env | nindent 12 }}
+          {{- end }}
+          {{- if $value.resources }}
+          resources:
+            {{- toYaml $value.resources | nindent 12 }}
+          {{- end }}
+          {{- if $value.livenessProbe }}
+          livenessProbe:
+            {{- toYaml $value.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if $value.readinessProbe }}
+          readinessProbe:
+            {{- toYaml $value.readinessProbe | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- range $key, $value := .Values.initContainers }}
+        - name: {{ $key }}
+          image: {{ $value.image }}
+          imagePullPolicy: {{ $.Values.imagePullPolicy | default "IfNotPresent" }}
+          command: {{- toYaml $value.command | nindent 12 }}
+          # Merge envFrom from both defaults and container-specific
+          envFrom:
+            {{- if $.Values.containerDefaults.envFrom }}
+            {{- toYaml $.Values.containerDefaults.envFrom | nindent 12 }}
+            {{- end }}
+            {{- if $value.envFrom }}
+            {{- toYaml $value.envFrom | nindent 12 }}
+            {{- end }}
+          env:
+            {{- include "namada-indexer.dbEnv" $ | nindent 12 }}
+            {{- if $value.env }}
+            {{- toYaml $value.env | nindent 12 }}
+            {{- end }}
+          {{- if $value.volumeMounts }}
+          volumeMounts:
+            {{- toYaml $value.volumeMounts | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      volumes:
+        {{- if .Values.additionalVolumes }}
+        {{- range $key, $value := .Values.additionalVolumes }}
+        - name: {{ $key }}
+          {{- if $value.hostPath }}
+          hostPath:
+            path: {{ $value.hostPath.path }}
+            type: {{ $value.hostPath.type | default "DirectoryOrCreate" }}
+          {{- end }}
+          {{- if $value.configMap }}
+          configMap:
+            name: {{ $value.configMap.name }}
+          {{- end }}
+          {{- if $value.secret }}
+          secret:
+            secretName: {{ $value.secret.secretName }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      restartPolicy: Always
