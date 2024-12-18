@@ -1,0 +1,13 @@
+{
+    "name": "cosmos-helm-charts",
+    "type": "commonjs",
+    "private": true,
+    "dependencies": {
+        "@semantic-release/changelog": "*",
+        "@semantic-release/exec": "*",
+        "@semantic-release/git": "*",
+        "@semantic-release/github": "*",
+        "conventional-changelog-conventionalcommits": "*",
+        "semantic-release": "^24.0.0"
+    }
+}

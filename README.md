@@ -36,11 +36,10 @@ To add a new chart to this repository, follow these steps:
 4. Create a `.releaserc.js` file in your chart directory using an existing one as an example - you simply need to change these lines
 
 ```js
-const chartName =
-```
-
-```js
-    tagFormat: 'cosmos-operator-rpc-node-v${version}',
+module.exports = {
+    extends: '../../.github/chart-release.config.js',
+    tagFormat: 'your-chart-name-v${version}',
+};
 ```
 
 ## Contributing

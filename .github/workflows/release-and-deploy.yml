@@ -64,30 +64,30 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install @semantic-release/git @semantic-release/changelog @semantic-release/exec conventional-changelog-conventionalcommits
+        run: npm install
 
       - name: Release charts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p release
-          chart_dirs=$(find ./charts -name Chart.yaml -exec dirname {} \;)
-          for dir in $chart_dirs; do
-            echo "Checking for changes in ${dir}"
-            if git diff --quiet HEAD^ HEAD -- "${dir}"; then
-              echo "No changes in ${dir}, skipping release"
-            else
-              echo "Changes detected in ${dir}, releasing chart"
-              cd "${dir}"
-              # Download dependencies before semantic-release
-              helm dependency update .
-              helm dependency build .
-              export CHART_PATH=$(pwd)
-              export CHART_NAME=$(basename $(pwd))
-              npx semantic-release -e ../../.github/chart-release.config.js
-              helm package . --destination ../release/
-              cd $GITHUB_WORKSPACE
+          # Store changed directories first
+          changed_dirs=()
+          for dir in $(find ./charts -name Chart.yaml -exec dirname {} \;); do
+            if ! git diff --quiet HEAD^ HEAD -- "${dir}"; then
+              changed_dirs+=("$dir")
             fi
+          done
+
+          # Process all changed directories
+          for dir in "${changed_dirs[@]}"; do
+            cd "${dir}"
+            helm dependency update .
+            helm dependency build .
+            export CHART_PATH=$(pwd)
+            export CHART_NAME=$(basename $(pwd))
+            npx semantic-release
+            cd $GITHUB_WORKSPACE
           done
 
       - name: Upload release as artifact
@@ -109,38 +109,51 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
 
-      - name: Install yq
+      - name: Install yq/jq
         run: |
           sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+          sudo apt-get install -y jq
 
-      - name: Generate Helm repo index and README
+      - name: Copy static assets
         run: |
-          mkdir -p ./release/images
-          cp -r docs/images/* ./release/images/
-          helm repo index ./release --url https://${{ github.repository_owner }}.github.io/cosmos-helm-charts/
+          mkdir -p release/images
+          cp -r docs/images/* release/images/
 
-          # Get list of charts
-          charts=$(find ./charts -name Chart.yaml -exec dirname {} \; | sed 's/.\///')
+      - name: Generate indexes
+        run: |
+          mkdir -p release
 
-          # Generate chart info
-          chart_info=""
-          for chart in $charts; do
-            if [ -f "${chart}/Chart.yaml" ]; then
-              name=$(yq e '.name' ${chart}/Chart.yaml)
-              # Get the latest tag for this chart, sorting by version number
-              version=$(git tag -l "${name}-v*" | sort -V | tail -n 1)
-              version=${version#${name}-v}
-              description=$(yq e '.description' ${chart}/Chart.yaml)
-              chart_info+="<div class=\"chart\">"
-              chart_info+="<h3>${name}</h3>"
-              chart_info+="<p><strong>Version:</strong> ${version}</p>"
-              chart_info+="<p><strong>Description:</strong> ${description}</p>"
-              chart_info+="</div>"
-            fi
+          # Download all chart packages from GitHub releases
+          git fetch --tags
+          for tag in $(git tag -l "*-v*" | sort -V); do
+            chart_name=${tag%-v*}
+            version=${tag#*-v}
+
+            # Download the .tgz from GitHub release
+            curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/octet-stream" \
+              "https://github.com/${{ github.repository }}/releases/download/${tag}/${chart_name}-${version}.tgz" \
+              -o "release/${chart_name}-${version}.tgz"
           done
 
-          # Use the template to generate index.html
+          # Generate fresh index.yaml from all packages
+          helm repo index ./release --url https://${{ github.repository_owner }}.github.io/cosmos-helm-charts/
+
+          # Generate HTML chart info
+          chart_info=""
+          for entry in $(yq e '.entries | keys | .[]' ./release/index.yaml); do
+            version=$(yq e ".entries.\"$entry\"[0].version" ./release/index.yaml)
+            description=$(yq e ".entries.\"$entry\"[0].description" ./release/index.yaml)
+
+            chart_info+="<div class=\"chart\">"
+            chart_info+="<h3>${entry}</h3>"
+            chart_info+="<p><strong>Version:</strong> ${version}</p>"
+            chart_info+="<p><strong>Description:</strong> ${description}</p>"
+            chart_info+="</div>"
+          done
+
+          # Generate index.html
           cp docs/index.html.template ./release/index.html
           sed -i "s|{{GITHUB_REPOSITORY_OWNER}}|${GITHUB_REPOSITORY_OWNER}|g" ./release/index.html
           sed -i "s|{{AVAILABLE_CHARTS}}|${chart_info}|g" ./release/index.html
