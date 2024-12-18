@@ -1,0 +1,28 @@
+{{- if .Values.publishSnapshot.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-public-snapshot
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/rewrite-target: {{ .Values.publishSnapshot.pathPrefix }}/{{ .Values.blch.name }}/index.html
+    nginx.ingress.kubernetes.io/upstream-vhost: {{ .Values.publishSnapshot.baseDomain }}
+spec:
+  ingressClassName: nginx-nlb
+  rules:
+  - host: {{ .Values.blch.name }}-{{ .Values.blch.network }}-{{ .Values.blch.nodeType }}-snapshots.{{ .Values.endpointsBaseDomain }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-public-snapshot
+            port:
+              number: 443
+  tls:
+  - hosts:
+    - {{ .Values.blch.name }}-{{ .Values.blch.network }}-{{ .Values.blch.nodeType }}-snapshots.{{ .Values.endpointsBaseDomain }}
+    secretName: {{ .Release.Name }}-public-snapshot-tls
+{{- end -}}
