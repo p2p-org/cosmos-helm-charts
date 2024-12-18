@@ -1,0 +1,6 @@
+{{- if .Values.publishSnapshot.enabled -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: snapshots-bucket-{{ .Release.Name }}
+{{- end -}}

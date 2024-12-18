@@ -11,32 +11,32 @@ spec:
   groups:
   - name: blockchain-alerts
     rules:
-    - record: chain_block_height_diff
-      expr: |
-        label_replace(chain_latest_block_height{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}"}, "cosmos_node", "$1", "pod", "") 
-          - on  (namespace) group_left(pod) 
-          cometbft_consensus_height{pod=~"{{ .Release.Name }}-.?", namespace="{{ .Release.Namespace }}"}
-      labels:
-        cosmos_node: "{{ .Release.Name }}"
-        namespace: "{{ .Release.Namespace }}"
     - alert: BlockHeightDifferenceGrowing
       expr: |
-        chain_block_height_diff{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}"} > {{ .Values.monitoring.alerts.growingBlockHeightDifference }}   
+        sum(chain_latest_block_height{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}", rpc_endpoint="{{ .Values.monitoring.publicRpcEndpoint }}"})
+          - sum(chain_latest_block_height{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}", rpc_endpoint="{{ include "host" (dict "context" $ "endpointName" "rpc") }}"})
+          > {{ .Values.monitoring.alerts.growingBlockHeightDifference }}
       for: 5m
       labels:
         severity: warning
+        namespace: {{ .Release.Namespace }}
+        pod: {{ .Release.Name }}
       annotations:
-        summary: "Block height difference is growing for chain {{ .Values.blch.id }}"
-        description: "{{ .Release.Name }} node for chain {{ .Values.blch.id }} in namespace {{ .Values.namespace }} is more than {{ .Values.monitoring.alerts.growingBlockHeightDifference }} blocks behind the public RPC endpoint."        
+        summary: "Block height difference is growing for {{ .Release.Namespace }}/{{ .Release.Name }}"
+        description: "{{ .Release.Name }} node in namespace {{ .Release.Namespace }} is more than {{ .Values.monitoring.alerts.growingBlockHeightDifference }} blocks behind the public RPC endpoint."
     - alert: BlockHeightDifferenceCritical
       expr: |
-        chain_block_height_diff{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}"} > {{ .Values.monitoring.alerts.maximumBlockHeightDifference }}   
+        sum(chain_latest_block_height{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}", rpc_endpoint="{{ .Values.monitoring.publicRpcEndpoint }}"})
+          - sum(chain_latest_block_height{cosmos_node="{{ .Release.Name }}", namespace="{{ .Release.Namespace }}", rpc_endpoint="{{ include "host" (dict "context" $ "endpointName" "rpc") }}"})
+          > {{ .Values.monitoring.alerts.maximumBlockHeightDifference }}   
       for: 5m
       labels:
         severity: critical
+        namespace: {{ .Release.Namespace }}
+        pod: {{ .Release.Name }}                
       annotations:
-        summary: "Block height difference too high for chain {{ .Values.blch.id }}"
-        description: "{{ .Release.Name }} node for chain {{ .Values.blch.id }} in namespace {{ .Values.namespace }} is more than {{ .Values.monitoring.alerts.maximumBlockHeightDifference }} blocks behind the public RPC endpoint."
+        summary: "Block height difference too high for {{ .Release.Namespace }}/{{ .Release.Name }}"
+        description: "{{ .Release.Name }} node in namespace {{ .Release.Namespace }} is more than {{ .Values.monitoring.alerts.maximumBlockHeightDifference }} blocks behind the public RPC endpoint."
     - alert: CometBFTPeersDrop
       expr: |
         (cometbft_p2p_peers{pod=~"{{ .Release.Name }}-.*", namespace="{{ .Release.Namespace }}"} 
@@ -47,33 +47,21 @@ spec:
       labels:
         severity: info
       annotations:
-        summary: "CometBFT P2P Peers Drop for {{`$labels.chain_id`}}"
-        description: "The number of P2P peers for chain {{`$labels.chain_id`}} in {{`$labels.namespace`}}/{{`$labels.pod`}} has dropped by more than 25% over the last 5 minutes."
-    - alert: LowTxSuccessRate
-      expr: |
-        cometbft_consensus_total_txs{pod=~"{{ .Release.Name }}-.*", namespace="{{ .Release.Namespace }}"} 
-        - cometbft_mempool_failed_txs{pod=~"{{ .Release.Name }}-.*", namespace="{{ .Release.Namespace }}"} 
-          / cometbft_consensus_total_txs{pod=~"{{ .Release.Name }}-.*", namespace="{{ .Release.Namespace }}"}
-          * 100 < {{ .Values.monitoring.alerts.txSuccessRateThreshold }}
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High Failed TXs for {{`$labels.pod`}}"
-        description: "Transaction success rate is below the SLO for {{`$labels.chain_id`}} in {{`$labels.namespace`}} /{{`$labels.pod`}}."
-    - alert: RpcSvcDown
+        summary: "CometBFT P2P Peers Drop for {{ .Release.Name }} node in namespace {{ .Release.Namespace }}"
+        description: "The number of P2P peers for {{ .Release.Name }} node in namespace {{ .Release.Namespace }} has dropped by more than 25% over the last 5 minutes."
+    - alert: RpcEndpointDown
       expr: | 
         probe_http_status_code{
-        rpc_svc="{{ .Release.Name }}-rpc.{{ .Release.Namespace }}"} 
+        rpc_endpoint="{{ include "host" (dict "context" $ "endpointName" "rpc") }}"} 
           < 200 
           or 
-          probe_http_status_code{rpc_svc="{{ .Release.Name }}-rpc.{{ .Release.Namespace }}"}
+          probe_http_status_code{rpc_endpoint="{{ include "host" (dict "context" $ "endpointName" "rpc") }}"}
           >= 300
       for: 5m
       labels:
         severity: critical
       annotations:
-        summary: "The RPC svc for {{ .Release.Name }}-rpc.{{ .Release.Namespace }} is down."
-        description: "Service {{ .Release.Name }}-rpc in namespace {{ .Release.Namespace }} has been down for the last 5 minutes."
+        summary: "The RPC endpoint {{ include "host" (dict "context" $ "endpointName" "rpc") }} is down."
+        description: "Endpoint for {{ .Release.Name }} node in namespace {{ .Release.Namespace }} has been down for the last 5 minutes."
 {{- end -}}
 {{- end -}}

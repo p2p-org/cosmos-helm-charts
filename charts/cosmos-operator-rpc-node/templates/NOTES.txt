@@ -1,0 +1,10 @@
+Your HTTP Basic Auth credentials have been automatically generated.
+
+Username: {{ randAlphaNum 8 }}
+Password: {{ randAlphaNum 16 }}
+
+These have been stored in the {{ .Release.Name }}-basic-auth-creds Kubernetes Secret.
+
+You can find them by running:
+
+kubectl -n {{ .Release.Namespace }} get secret {{ .Release.Name }}-basic-auth-creds -o jsonpath="{.data}" | jq -r 'to_entries[] | "\(.key): \(.value | @base64d)"'
