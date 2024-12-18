@@ -55,6 +55,8 @@ jobs:
       - name: Add dependency repositories
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add zalando https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+          helm repo update
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -77,6 +79,9 @@ jobs:
             else
               echo "Changes detected in ${dir}, releasing chart"
               cd "${dir}"
+              # Download dependencies before semantic-release
+              helm dependency update .
+              helm dependency build .
               export CHART_PATH=$(pwd)
               export CHART_NAME=$(basename $(pwd))
               npx semantic-release -e ../../.github/chart-release.config.js
