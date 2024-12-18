@@ -1,0 +1,45 @@
+apiVersion: v1
+entries:
+  allora-worker:
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2024-12-18T19:00:41.970552235Z"
+    description: A Helm chart for deploying an allora worker
+    digest: 0f34db013a1138426c832e0a5364627c580bacb9addf41538f80d5092ee65d1e
+    name: allora-worker
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/allora-worker-1.1.0.tgz
+    version: 1.1.0
+  cosmos-operator-rpc-node:
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2024-12-18T19:00:41.97108659Z"
+    description: A Helm chart for deploying an RPC node using the Cosmos Operator
+    digest: 5f35711515cb92c6d6b6e240dc17372335b0f9d98e478f42c812ec58af087946
+    name: cosmos-operator-rpc-node
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-operator-rpc-node-1.1.0.tgz
+    version: 1.1.0
+  namada-indexer:
+  - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2024-12-18T19:00:41.979121306Z"
+    dependencies:
+    - condition: postgresOperator.install.enabled
+      name: postgres-operator
+      repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+      version: 1.13.0
+    - condition: redis.install.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.5.0
+    description: A Helm chart for deploying a namada indexer
+    digest: ea82555167a2e0db810814c234d7eb04e81607423b3617346c3970ea8ecb6278
+    name: namada-indexer
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/namada-indexer-1.0.1.tgz
+    version: 1.0.1
+generated: "2024-12-18T19:00:41.969875156Z"
