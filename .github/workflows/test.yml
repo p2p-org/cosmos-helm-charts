@@ -30,14 +30,20 @@ jobs:
         with:
           version: v3.10.0
 
-      - name: Run Helm lint
-        run: helm lint ${{ matrix.chart_dir }} -f ${{ matrix.chart_dir }}/examples/values.yaml
-
-      - name: Run Helm template
-        run: helm template ${{ matrix.chart_dir }} -f ${{ matrix.chart_dir }}/examples/values.yaml
-
       - name: Install chart dependencies
         run: |
           if [ -f ${{ matrix.chart_dir }}/Chart.yaml ]; then
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo add zalando https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+            helm repo update
             helm dependency update ${{ matrix.chart_dir }}
+            helm dependency build ${{ matrix.chart_dir }}
           fi
+
+      - name: Run Helm lint
+        run: helm lint ${{ matrix.chart_dir }} -f ${{ matrix.chart_dir }}/values.yaml
+
+      - name: Run Helm template
+        run: helm template ${{ matrix.chart_dir }} -f ${{ matrix.chart_dir }}/values.yaml
+
+

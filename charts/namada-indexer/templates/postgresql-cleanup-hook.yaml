@@ -1,0 +1,49 @@
+{{- if and .Values.postgresOperator.install.enabled .Values.postgresOperator.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}-db-cleanup
+  annotations:
+    {{- if .Values.argocd.deployment }}
+    "argocd.argoproj.io/hook": "PreDelete"
+    "argocd.argoproj.io/sync-wave": "-2"
+    {{- else }}
+    "helm.sh/hook": "pre-delete"
+    "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
+    {{- end }}
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ include "namada-indexer.serviceAccountName" . }}
+      containers:
+        - name: kubectl
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Delete dependencies job first
+              kubectl delete job -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}-wait-dependencies --force --grace-period=0 || true
+
+              # Delete any leftover pods from the dependencies job
+              kubectl delete pods -n {{ .Release.Namespace }} -l job-name={{ include "namada-indexer.fullname" . }}-wait-dependencies --force --grace-period=0 || true
+
+              # Force delete the statefulset
+              kubectl delete statefulset -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}-db --force --grace-period=0 || true
+
+              # Remove finalizers from postgresql CRD
+              kubectl patch postgresql -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}-db -p '{"metadata":{"finalizers":null}}' --type=merge || true
+
+              # Delete PostgreSQL services
+              kubectl delete svc -n {{ .Release.Namespace }} \
+                {{ include "namada-indexer.fullname" . }}-db \
+                {{ include "namada-indexer.fullname" . }}-db-config \
+                {{ include "namada-indexer.fullname" . }}-db-repl \
+                {{ include "namada-indexer.fullname" . }}-db-pooler \
+                {{ include "namada-indexer.fullname" . }}-db-repl-pooler \
+                {{ include "namada-indexer.fullname" . }}-db-pooler-repl || true
+      restartPolicy: Never
+  backoffLimit: 1
+{{- end }}
