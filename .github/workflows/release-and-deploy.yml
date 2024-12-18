@@ -156,6 +156,7 @@ jobs:
           # Generate index.html
           cp docs/index.html.template ./release/index.html
           sed -i "s|{{GITHUB_REPOSITORY_OWNER}}|${GITHUB_REPOSITORY_OWNER}|g" ./release/index.html
+          sed -i "s|\${{ github.repository }}|${GITHUB_REPOSITORY}|g" ./release/index.html
           sed -i "s|{{AVAILABLE_CHARTS}}|${chart_info}|g" ./release/index.html
 
       - name: Upload release as artifact

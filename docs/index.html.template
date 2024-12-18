@@ -50,7 +50,7 @@
     </style>
 </head>
 <body>
-    <img src="https://raw.githubusercontent.com/${{ github.repository }}/main/docs/images/logo.png" alt="P2P Logo" class="logo">
+    <img src="images/logo.png" alt="P2P Logo" class="logo">
     <div class="badges">
         <a href="https://x.com/P2Pvalidator"><img src="https://badgen.net/badge/twitter/@P2Pvalidator/1DA1F2?icon&label" /></a>
         <a href="https://github.com/p2p-org/cosmos-helm-charts"><img src="https://badgen.net/github/stars/p2p-org/cosmos-helm-charts?icon=github" /></a>
