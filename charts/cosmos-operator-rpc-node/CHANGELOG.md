@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/p2p-org/cosmos-helm-charts/compare/cosmos-operator-rpc-node-v1.1.0...cosmos-operator-rpc-node-v1.2.0) (2025-01-07)
+
+
+### Features
+
+* **cosmos-operator-rpc-node:** port local git chart changes ([499655e](https://github.com/p2p-org/cosmos-helm-charts/commit/499655ec2d44f3ca20781a5de9d45feec426625d))
+
 # [1.1.0](https://github.com/p2p-org/cosmos-helm-charts/compare/cosmos-operator-rpc-node-v1.0.0...cosmos-operator-rpc-node-v1.1.0) (2024-12-18)
 
 
