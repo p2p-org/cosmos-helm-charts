@@ -35,7 +35,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-block-height
+  name: {{ .Release.Name }}-external-latest-height
   labels:
     release: kube-prometheus-stack
 spec:
@@ -55,9 +55,6 @@ spec:
     scrapeTimeout: 10s
     metricRelabelings:
     - sourceLabels: []
-      targetLabel: chain_id
-      replacement: {{ .Values.blch.id }}
-    - sourceLabels: []
       targetLabel: namespace
       replacement: {{ .Release.Namespace }}
     - sourceLabels: []
@@ -66,6 +63,38 @@ spec:
     - sourceLabels: []
       targetLabel: rpc_endpoint
       replacement: {{ .Values.monitoring.publicRpcEndpoint }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-internal-latest-height
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-json-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+  - port: http
+    path: /probe
+    params:
+      module: [latest_block_height]
+      target: [https://{{ include "host" (dict "context" $ "endpointName" "rpc") }}/status]
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+    - sourceLabels: []
+      targetLabel: namespace
+      replacement: {{ .Release.Namespace }}
+    - sourceLabels: []
+      targetLabel: cosmos_node
+      replacement: {{ .Release.Name }}
+    - sourceLabels: []
+      targetLabel: rpc_endpoint
+      replacement: {{ include "host" (dict "context" $ "endpointName" "rpc") }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -85,7 +114,7 @@ spec:
     path: /probe
     params:
       module: [http_2xx]
-      target: [{{ .Release.Name }}-rpc.{{ .Release.Namespace }}.svc.cluster.local:26657]
+      target: [https://{{ include "host" (dict "context" $ "endpointName" "rpc") }}]
     interval: 30s
     scrapeTimeout: 10s
     metricRelabelings:
@@ -93,6 +122,6 @@ spec:
       targetLabel: namespace
       replacement: {{ .Release.Namespace }}
     - sourceLabels: []
-      targetLabel: rpc_svc
-      replacement: {{ .Release.Name }}-rpc.{{ .Release.Namespace }}
-{{- end -}}
+      targetLabel: rpc_endpoint
+      replacement: {{ include "host" (dict "context" $ "endpointName" "rpc") }}
+{{- end }}
