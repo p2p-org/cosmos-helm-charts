@@ -1,8 +1,8 @@
 ---
 appEnv:
-  - name: VALIDATOR_ADDRESS
-    value: CA4B5F01CE47C34EE16C3A831C6143BAAFED0140
+  - name: BLOCKCHAIN
+    value: Tendermint
   - name: REST_ENDPOINTS
-    value: https://dydx-dao-api.polkachu.com,https://dydx-mainnet-full-lcd.public.blastapi.io,https://dydx-rest.kingnodes.com,https://rest.lavenderfive.com/dydx,https://dydx-mainnet-lcd.autostake.com,https://rest-dydx.ecostake.com,https://dydx-rest.publicnode.com,https://dydx-lcd.enigma-validator.com,https://dydx-api.noders.services,https://dydx-rest.interstellar-lounge.org
+    value: https://dydx-dao-api.polkachu.com,/cosmos/base/node/v1beta1/status;https://dydx-mainnet-full-lcd.public.blastapi.io,/cosmos/base/node/v1beta1/status;https://dydx-rest.kingnodes.com,/cosmos/base/node/v1beta1/status;https://rest.lavenderfive.com/dydx,/cosmos/base/node/v1beta1/status;https://dydx-mainnet-lcd.autostake.com,/cosmos/base/node/v1beta1/status;https://rest-dydx.ecostake.com,/cosmos/base/node/v1beta1/status;https://dydx-rest.publicnode.com,/cosmos/base/node/v1beta1/status;https://dydx-lcd.enigma-validator.com,/cosmos/base/node/v1beta1/status;https://dydx-api.noders.services,/cosmos/base/node/v1beta1/status;https://dydx-rest.interstellar-lounge.org,/cosmos/base/node/v1beta1/status;
   - name: RPC_ENDPOINTS
-    value: https://dydx-rpc.kingnodes.com,https://dydx-dao-rpc.polkachu.com,https://dydx-mainnet-full-rpc.public.blastapi.io,https://rpc.lavenderfive.com/dydx,https://dydx-mainnet-rpc.autostake.com,https://rpc-dydx.ecostake.com,https://dydx-rpc.publicnode.com,https://dydx-rpc.enigma-validator.com,https://dydx-rpc.noders.services,https://dydx.interstellar-lounge.org,https://rpc.dydx-mainnet.tm.p2p.org
+    value: https://dydx-rpc.kingnodes.com,/status;https://dydx-dao-rpc.polkachu.com,/status;https://dydx-mainnet-full-rpc.public.blastapi.io,/status;https://rpc.lavenderfive.com/dydx,/status;https://dydx-mainnet-rpc.autostake.com,/status;https://rpc-dydx.ecostake.com,/status;https://dydx-rpc.publicnode.com,/status;https://dydx.interstellar-lounge.org,/status;https://rpc.dydx-mainnet.tm.p2p.org,/status;

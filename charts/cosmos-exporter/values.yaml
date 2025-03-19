@@ -5,19 +5,15 @@ replicas: 1
 appImage:
   repo: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: &appTag v0.2.4
+  tag: &appTag v0.6.0-rc0
 
 appEnv:
-  - name: LOGGING_LEVEL
-    value: DEBUG
   - name: PROMETHEUS_IP
     value: 0.0.0.0
   - name: PROMETHEUS_PORT
     value: &cosmosExporterPort 9100
   - name: BLOCK_WINDOW
     value: 500
-  - name: VALIDATOR_ADDRESS
-    value: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   - name: REST_ENDPOINTS
     value: http://127.0.0.1:1317
   - name: RPC_ENDPOINTS

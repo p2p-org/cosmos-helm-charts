@@ -3,7 +3,7 @@ name: Release Charts and Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - antonio/rcosmos-exporter
 
 jobs:
   check-changes:
@@ -50,7 +50,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
 
       - name: Add dependency repositories
         run: |
@@ -79,17 +79,16 @@ jobs:
               cd "${dir}"
               export CHART_PATH=$(pwd)
               export CHART_NAME=$(basename $(pwd))
-              npx semantic-release -e ../../.github/chart-release.config.js
-              helm package . --destination ../release/
-              cd $GITHUB_WORKSPACE
+              npx semantic-release -e ../../.github/chart-release.config.js --branches 'antonio/rcosmos-exporter'
+              helm package . --destination $GITHUB_WORKSPACE/releases
             fi
           done
 
       - name: Upload release as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
-          path: release
+          name: helm-releases
+          path: releases/*
 
   generate-index:
     needs: release-charts
@@ -102,7 +101,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
 
       - name: Install yq
         run: |
@@ -141,10 +140,10 @@ jobs:
           sed -i "s|{{AVAILABLE_CHARTS}}|${chart_info}|g" ./release/index.html
 
       - name: Upload release as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
-          path: release
+          name: indexes
+          path: release/*
 
   deploy:
     needs: generate-index
@@ -157,9 +156,9 @@ jobs:
           fetch-depth: 0
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: release
+          name: indexes
           path: release
 
       - name: Deploy to GitHub Pages
@@ -180,9 +179,9 @@ jobs:
           fetch-depth: 0
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: release
+          name: indexes
           path: release
 
       - name: Verify files
