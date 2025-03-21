@@ -86,15 +86,16 @@ jobs:
             helm dependency build .
             export CHART_PATH=$(pwd)
             export CHART_NAME=$(basename $(pwd))
-            npx semantic-release
+            npx semantic-release --config $GITHUB_WORKSPACE/.github/chart-release.config.js
             cd $GITHUB_WORKSPACE
           done
 
       - name: Upload release as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
+          name: release-${{ github.sha }}
           path: release
+
 
   generate-index:
     needs: release-charts
@@ -160,10 +161,11 @@ jobs:
           sed -i "s|{{AVAILABLE_CHARTS}}|${chart_info}|g" ./release/index.html
 
       - name: Upload release as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: release
+          name: release-${{ github.sha }}-index
           path: release
+
 
   deploy:
     needs: generate-index
@@ -176,9 +178,9 @@ jobs:
           fetch-depth: 0
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: release
+          name: release-${{ github.sha }}-index  # Match the artifact name used during upload
           path: release
 
       - name: Deploy to GitHub Pages
@@ -199,9 +201,9 @@ jobs:
           fetch-depth: 0
 
       - name: Download release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: release
+          name: release-${{ github.sha }}-index  # Match the artifact name used during upload
           path: release
 
       - name: Verify files

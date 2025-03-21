@@ -1,5 +1,5 @@
 module.exports = {
-    branches: ['main'],
+    branches: ['main', 'antonio/rcosmos-exporter'],
     plugins: [
         ['@semantic-release/commit-analyzer', {
             preset: 'conventionalcommits',
