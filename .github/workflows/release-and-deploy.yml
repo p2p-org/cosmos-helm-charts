@@ -3,6 +3,7 @@ name: Release Charts and Deploy to GitHub Pages
 on:
   push:
     branches:
+      - main
       - antonio/rcosmos-exporter
 
 jobs:
@@ -50,7 +51,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v3
 
       - name: Add dependency repositories
         run: |
@@ -86,15 +87,16 @@ jobs:
             helm dependency build .
             export CHART_PATH=$(pwd)
             export CHART_NAME=$(basename $(pwd))
-            npx semantic-release
+            npx semantic-release --config $GITHUB_WORKSPACE/.github/chart-release.config.js
             cd $GITHUB_WORKSPACE
           done
 
       - name: Upload release as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: helm-releases
-          path: releases/*
+          name: release-${{ github.sha }}
+          path: release
+
 
   generate-index:
     needs: release-charts
@@ -107,7 +109,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v3
 
       - name: Install yq/jq
         run: |
@@ -162,8 +164,9 @@ jobs:
       - name: Upload release as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: indexes
-          path: release/*
+          name: release-${{ github.sha }}-index
+          path: release
+
 
   deploy:
     needs: generate-index
@@ -178,7 +181,7 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
-          name: indexes
+          name: release-${{ github.sha }}-index  # Match the artifact name used during upload
           path: release
 
       - name: Deploy to GitHub Pages
@@ -201,7 +204,7 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
-          name: indexes
+          name: release-${{ github.sha }}-index  # Match the artifact name used during upload
           path: release
 
       - name: Verify files
