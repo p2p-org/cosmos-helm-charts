@@ -1,0 +1,12 @@
+{{- if .Values.publishSnapshot.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-public-snapshot
+spec:
+   type: ExternalName
+   externalName: {{ .Values.publishSnapshot.baseDomain }}
+   ports:
+     - port: 443
+       targetPort: 443
+{{- end -}}

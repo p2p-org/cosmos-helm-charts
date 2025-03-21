@@ -1,8 +1,5 @@
-const path = require('path');
-
 module.exports = {
     branches: ['main'],
-    tagFormat: '${CHART_NAME}-v${version}',
     plugins: [
         ['@semantic-release/commit-analyzer', {
             preset: 'conventionalcommits',
@@ -19,20 +16,18 @@ module.exports = {
             assets: ['CHANGELOG.md', 'Chart.yaml'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
         }],
+        ['@semantic-release/exec', {
+            prepareCmd: `
+                sed -i "s/^version:.*$/version: \${nextRelease.version}/" Chart.yaml && \
+                helm package . --version \${nextRelease.version} --app-version \${nextRelease.version} && \
+                mv ${process.env.CHART_NAME}-\${nextRelease.version}.tgz ${process.env.GITHUB_WORKSPACE}/release/ && \
+                ls -l ${process.env.GITHUB_WORKSPACE}/release/
+            `
+        }],
         ['@semantic-release/github', {
             assets: [
-                { path: '${CHART_NAME}-${nextRelease.version}.tgz', label: '${CHART_NAME} Chart' },
-            ],
-        }],
-    ],
-    prepare: [
-        {
-            path: '@semantic-release/exec',
-            cmd: 'sed -i "s/^version:.*$/version: ${nextRelease.version}/" Chart.yaml',
-        },
-        {
-            path: '@semantic-release/exec',
-            cmd: 'helm package . --version ${nextRelease.version} --app-version ${nextRelease.version}',
-        },
-    ],
+                `${process.env.GITHUB_WORKSPACE}/release/${process.env.CHART_NAME}-*.tgz`
+            ]
+        }]
+    ]
 };

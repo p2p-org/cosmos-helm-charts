@@ -1,82 +1,122 @@
 # Default values for RPC nodes
 
 ## Pod Specs
-image: "ghcr.io/p2p-org/cosmos-heighliner"
+image: ""
 imageTag: ""
-imagePullSecrets: "github-secret"
+imagePullSecrets: ""
 replicas: 1
 maxUnavailable: ""
 storage: ""
-storageClassName: "oci-bv"
-# Note: Key to be used for node affinity
+storageClassName: ""
+# Key to be used for node affinity
 nodeSelectorKey: ""
-# Note: [Optional] Additional matches for node affinity
-affinityAdditionalMatches: {}
-# Note: [Optional] Label to be used for node selector
-nodeSelectorLabel: {}
-# Note: [Optional] Enable podAntiAffinity to run only one pod per hostname
-podAntiAffinityPerNode: false
-volumeRetainPolicy: "Retain"
+# [Optional] Additional matches for node affinity
+# affinityAdditionalMatches: {}
+# [Optional] Label to be used for node selector
+# nodeSelectorLabel: {}
+# [Optional] Enable podAntiAffinity to run only one pod per hostname
+podAntiAffinityPerNode: true
+volumeRetainPolicy: "Delete"
+# Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
+rollingUpdateEnabled: false
 
-resources: {}
+# resources: {}
 
-# Note: Optional additional configuration for the pod template
-initContainers: []
-cosmosNodeLabels: {}
-cosmosNodeAnnotations: {}
-priorityClassName: ""
+# Optional additional configuration for the pod template
+# initContainers: []
+# cosmosNodeLabels:
+#   app: "rpc-node"
+#   abc: "xyz"
+# cosmosNodeAnnotations: {}
+# priorityClassName
 
-# Note: Optional additional configuration for the services
 service:
-  maxP2PExternalAddresses: 1
-  p2pTemplate:
-    metadata:
-      labels: {}
-      annotations: {}
-    type: ClusterIP
+  # Allow endpoints to be available while pods are not ready during sync
+  publishSvcDuringSync: true
+# Optional additional configuration for the services
+# additionalServiceConfig:
+#   maxP2PExternalAddresses: 1
+#   p2pTemplate:
+#     metadata:
+#       labels:
+#         extra: labels
+#       annotations:
+#         extra: annotations
+#     type: NodePort
 
 ## Chain Specs
 blch:
-  # NOTE: Whether the node is a full or archive node. Options are "full" or "archive"
+  # Whether the node is a full or archive node. Options are "full" or "archive"
   nodeType: ""
   id: ""
   network: ""
+  name: ""
   binary: ""
   skipInvariants: true
-  # NOTE: Provide either a genesisURL or snapshotURL for the syncing process
-  genesisURL: ""
-  snapshotURL: ""
+  # Provide either a genesisURL or snapshotURL for the syncing process
+  # genesisURL: ""
+  # snapshotURL: ""
   minGasPrice: ""
-  appOverrides: ""
-  # NOTE: Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
-  addrbookURL: ""
-  # NOTE: Optional additional configuration for the network
-  config:
-    peers: ""
-    seeds: ""
-    overrides: ""
-  additionalStartArgs: ""
-  homeDir: ""
-  # Note: Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
-  pruning:
-    strategy: ""
-    interval: 0
-    keepEvery: 0
-    keepRecent: 0
+  # Optional additional configuration for the chain
+  # appOverrides: |-
+  #  [example]
+  #   key = "value"
 
-# Monitoring configuration
+  # Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
+  # addrbookURL: ""
+
+  # Optional additional configuration for the network
+  config:
+    # peers: ""
+    # seeds: ""
+    overrides: |-
+      [tx_index]
+      indexer = "kv"
+  # additionalStartArgs: ""
+  # homeDir: ""
+
+  # Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
+  # pruning:
+  #   strategy: "custom"
+  #   interval: 10
+  #   keepEvery: 0
+  #   keepRecent: 100
+
+# Requires kube-prometheus-stack to be installed, along with blackbox-exporter and prometheus-json-exporter. If not available, set to false.
+# JSON exporter is used to monitor the latest block height, and requires the following configuration during setup:
+#   ---
+#   modules:
+#     latest_block_height:
+#       metrics:
+#         - name: chain_latest_block_height
+#           path: '{.result.sync_info.latest_block_height}'
+#           valuetype: gauge  
 monitoring:
-  enabled: true
+  enabled: false
+  # Provide a public RPC endpoint to compare the block height with.
   publicRpcEndpoint: ""
   alerts:
-    enabled: true
+    enabled: false
     growingBlockHeightDifference: 25
     maximumBlockHeightDifference: 100
     maximumPeerDropPercentage: 25
-    txSuccessRateThreshold: 95
+
+# Optional configuration for hosting public snapshots. The snapshot solution is not part of this chart.
+publishSnapshot:
+  enabled: false
+  cronJobSchedule: "0 */12 * * *"
+  # The path prefix for the snapshots. By default the chain.name is also included in the path. For example, if the pathPrefix is set to "snapshots", the snapshots will be available under /snapshots/cosmoshub/. 
+  pathPrefix: ""
+
+# Basic Auth can be enabled  for all RPC endpoints, it will create a secret with a randomly generated username and password. Check NOTES.txt to retrieve the credentials.
+basicAuth:
+  enabled: false
+
+# All endpoints will be exposed under the same domain, you can set a base domain to be used for all endpoints. 
+endpointsBaseDomain: ""
 
 ## Ingress Specs
-# Note: Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:
+# Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:
 #   enabled: A boolean value to enable or disable the RPC service.
 #   servicePort: The port number for the RPC service. This is defined by the cosmos-operator and created as part of CosmosFullNode.
 #   path: (Optional) The path to set for the endpoints, default to `/` if not set.
@@ -88,47 +128,23 @@ monitoring:
 # Note that some endpoints might need additional overrides to work properly, you can define them as appOverrides under the blch specs.
 endpoints:
   rpc:
-    enabled: false
+    enabled: true
     servicePort: 26657
-    path: "/"
-    ingressName: ""
-    host: ""
-    tlsHost: ""
-    tlsSecretName: ""
     additionalIngressAnnotations: {}
   grpc:
     enabled: false
     servicePort: 9090
-    path: "/"
-    ingressName: ""
-    host: ""
-    tlsHost: ""
-    tlsSecretName: ""
     additionalIngressAnnotations: {}
   ws:
     enabled: false
     servicePort: 8546
-    path: "/"
-    ingressName: ""
-    host: ""
-    tlsHost: ""
-    tlsSecretName: ""
     additionalIngressAnnotations: {}
   ws-rpc:
     enabled: false
     servicePort: 26657
     path: "/websocket"
-    ingressName: ""
-    host: ""
-    tlsHost: ""
-    tlsSecretName: ""
     additionalIngressAnnotations: {}
   rest:
     enabled: false
     servicePort: 1317
-    path: "/"
-    ingressName: ""
-    host: ""
-    tlsHost: ""
-    tlsSecretName: ""
     additionalIngressAnnotations: {}

@@ -1,0 +1,83 @@
+{{- if or (.Values.postgresOperator.enabled) (and .Values.redis.install.enabled .Values.redis.enabled) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}-wait-dependencies
+  annotations:
+    {{- if .Values.argocd.deployment }}
+    "argocd.argoproj.io/hook": "Sync"
+    "argocd.argoproj.io/sync-wave": "1"
+    {{- else }}
+    "helm.sh/hook": "post-install"
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
+    {{- end }}
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 100
+  template:
+    metadata:
+      name: {{ include "namada-indexer.fullname" . }}-wait-dependencies
+    spec:
+      serviceAccountName: {{ include "namada-indexer.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+        - name: wait
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Only try to scale if deployment exists
+              if kubectl get deployment -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}; then
+                kubectl scale deployment -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }} --replicas=0
+              fi
+
+              {{- if .Values.postgresOperator.enabled }}
+              # Wait for PostgreSQL StatefulSet to be created
+              until kubectl get statefulset -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}-db; do
+                echo "Waiting for PostgreSQL StatefulSet..."
+                sleep 5
+              done
+
+              # Wait for PostgreSQL secret
+              until kubectl get secret -n {{ .Release.Namespace }} namada.{{ include "namada-indexer.fullname" . }}-db.credentials.postgresql.acid.zalan.do; do
+                echo "Waiting for PostgreSQL secret..."
+                sleep 5
+              done
+
+              # Wait for PostgreSQL pods to be running
+              until [ "$(kubectl get pods -n {{ .Release.Namespace }} -l application=spilo --field-selector status.phase=Running -o name | wc -l)" -eq {{ .Values.postgresOperator.numberOfInstances }} ]; do
+                echo "Waiting for PostgreSQL pods ($(kubectl get pods -n {{ .Release.Namespace }} -l application=spilo --field-selector status.phase=Running -o name | wc -l)/{{ .Values.postgresOperator.numberOfInstances }})..."
+                sleep 5
+              done
+              {{- end }}
+
+              {{- if and .Values.redis.install.enabled .Values.redis.enabled }}
+              # Wait for Redis StatefulSet
+              until kubectl get statefulset -n {{ .Release.Namespace }} {{ .Release.Name }}-redis-node; do
+                echo "Waiting for Redis StatefulSet..."
+                sleep 5
+              done
+
+              # Get expected Redis replicas
+              REDIS_NODES=$(kubectl get statefulset -n {{ .Release.Namespace }} {{ .Release.Name }}-redis-node -o jsonpath='{.spec.replicas}')
+
+              # Wait for Redis nodes to be fully ready (all 3 containers running)
+              until [ "$(kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/name=redis,app.kubernetes.io/component=node --field-selector status.phase=Running | grep '3/3' | wc -l)" -eq "$REDIS_NODES" ]; do
+                echo "Waiting for Redis nodes ($(kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/name=redis,app.kubernetes.io/component=node --field-selector status.phase=Running | grep '3/3' | wc -l)/$REDIS_NODES)..."
+                sleep 5
+              done
+              {{- end }}
+
+              echo "All dependencies are ready!"
+
+              # Only try to scale back if deployment exists
+              if kubectl get deployment -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }}; then
+                kubectl scale deployment -n {{ .Release.Namespace }} {{ include "namada-indexer.fullname" . }} --replicas={{ .Values.replicaCount }}
+              fi
+
+              echo "✅ Dependencies check completed, deployment scaled up to {{ .Values.replicaCount }} replicas"
+              exit 0
+{{- end }}

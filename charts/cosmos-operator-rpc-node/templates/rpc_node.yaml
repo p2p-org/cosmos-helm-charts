@@ -13,7 +13,12 @@ metadata:
   {{ end }}
 
 spec:
+  {{ if and (eq (int .Values.replicas) 1) .Values.rollingUpdateEnabled }}
+  # Only one replica will be running, the second replica will be disabled and used only during rolling updates
+  replicas: 2
+  {{ else}}
   replicas: {{ .Values.replicas }}
+  {{ end }}
   {{ if .Values.maxUnavailable }}
   strategy:
     maxUnavailable: {{ .Values.maxUnavailable }}
@@ -36,6 +41,13 @@ spec:
       overrides: |-
 {{ .Values.blch.appOverrides | nindent 8 }}
       {{- end }}
+    {{ if .Values.blch.dataDir }}
+    dataDir: {{ .Values.blch.dataDir }}
+    {{ end }}
+    {{ if .Values.blch.startCmd }}
+    startCmd:
+{{ toYaml .Values.blch.startCmd | nindent 6 }}
+    {{ end }}
     network: {{ .Values.blch.network }}
     chainID: {{ .Values.blch.id }}
     binary: {{ .Values.blch.binary }}
@@ -56,6 +68,12 @@ spec:
     {{ end }}
     {{ if .Values.blch.addrbookURL }}
     addrbookURL: {{ .Values.blch.addrbookURL }}
+    {{ end }}
+    {{ if .Values.blch.snapshotScript }}
+    snapshotScript: {{ toYaml .Values.blch.snapshotScript | nindent 6 }}
+    {{ end }}
+    {{ if .Values.blch.genesisScript }}
+    genesisScript: {{ toYaml .Values.blch.genesisScript | nindent 6 }}
     {{ end }}
     {{ if .Values.blch.config }}
     config:
@@ -94,7 +112,7 @@ spec:
               operator: In
               values:
               - {{ .Release.Name }}
-          topologyKey: "kubernetes.io/hostname" 
+          topologyKey: "kubernetes.io/hostname"
     {{- end }}
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -122,10 +140,14 @@ spec:
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}
     {{ end }}
-  {{ if .Values.additionalServiceConfig }}
   service:
-    {{ toYaml .Values.additionalServiceConfig | nindent 4 }}
+  {{ if .Values.additionalServiceConfig }}
+    {{ toYaml .Values.additionalServiceConfig | nindent 6 }}
   {{ end }}
+    {{ if .Values.service.publishSvcDuringSync }}
+    rpcTemplate:
+      publishNotReadyAddresses: true
+    {{ end }}
   volumeClaimTemplate:
     resources:
       requests:

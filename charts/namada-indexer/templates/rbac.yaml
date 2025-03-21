@@ -1,0 +1,62 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.argocd.deployment }}
+    "argocd.argoproj.io/sync-wave": "-3"
+    {{- else }}
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-9"
+    {{- end }}
+rules:
+  # For deployment scaling and management
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale", "statefulsets"]
+    verbs: ["get", "list", "watch", "update", "patch", "delete"]
+
+  # For PostgreSQL operator and database management
+  - apiGroups: ["acid.zalan.do"]
+    resources: ["postgresqls", "postgresqls/status"]
+    verbs: ["get", "list", "watch", "patch", "delete"]
+
+  # For pod and service management
+  - apiGroups: [""]
+    resources: ["pods", "services", "secrets", "configmaps", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "delete", "patch"]
+
+  # For job management
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "delete", "create"]
+
+  # For connection pooler management
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["db-connection-pooler"]
+    verbs: ["get", "list", "watch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "namada-indexer.fullname" . }}
+  labels:
+    {{- include "namada-indexer.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.argocd.deployment }}
+    "argocd.argoproj.io/sync-wave": "-3"
+    {{- else }}
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-9"
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "namada-indexer.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "namada-indexer.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
