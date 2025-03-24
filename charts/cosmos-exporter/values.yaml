@@ -1,54 +1,61 @@
-appName: cosmos-exporter
-networkType: mainnet
-replicas: 1
+nameOverride: ""
+fullnameOverride: ""
 
-appImage:
-  repo: ghcr.io/p2p-org/rcosmos-exporter
+port: &appPort 9100
+
+image:
+  repository: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: &appTag v0.6.0-rc0
+  tag: v0.6.0-rc0
 
-appEnv:
+env:
   - name: PROMETHEUS_IP
     value: 0.0.0.0
   - name: PROMETHEUS_PORT
-    value: &cosmosExporterPort 9100
+    value: *appPort
   - name: BLOCK_WINDOW
     value: 500
+  - name: BLOCKCHAIN
+    value: ""
   - name: REST_ENDPOINTS
-    value: http://127.0.0.1:1317
+    value: ""
   - name: RPC_ENDPOINTS
-    value: http://127.0.0.1:26657
+    value: ""
 
-services:
-  type: ClusterIP
-  ports:
-  - name: prometheus
-    port: *cosmosExporterPort
-    targetPort: *cosmosExporterPort
-    protocol: TCP
 
-appProbes:
-  livenessProbe:
-    tcpSocket:
-      port: *cosmosExporterPort
-    initialDelaySeconds: 60
-    periodSeconds: 20
-    timeoutSeconds: 5
-    failureThreshold: 3
-  readinessProbe:
-    tcpSocket:
-      port: *cosmosExporterPort
-    periodSeconds: 5
-    timeoutSeconds: 1
-    failureThreshold: 3
+envOverride: []
+  # - name: BLOCKCHAIN
+  #   value: Tendermint
+  # - name: RPC_ENDPOINTS
+  #   value: https://rpc.testnet.mezo.tm.p2p.world,/status
+  # - name: REST_ENDPOINTS
+  #   value: https://api.testnet.mezo.tm.p2p.world,/cosmos/base/node/v1beta1/status
+  
+
+livenessProbe:
+  tcpSocket:
+    port: *appPort
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+  
+readinessProbe:
+  tcpSocket:
+    port: *appPort
+  periodSeconds: 5
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+
+resources:
+  requests:
+    memory: "512Mi"
+  limits:
+    memory: "512Mi"
 
 imagePullSecrets:
-- name: registry
-
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
+- name: github-secret
 
 affinity:
   nodeAffinity:
@@ -60,14 +67,5 @@ affinity:
           values:
           - "true"
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
 
-imageCredentials:
-  registry: ghcr.io
-  username: cosmos
-  password: secret
-  email: cosmos-security@p2p.org
+tolerations: []
