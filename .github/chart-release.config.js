@@ -12,7 +12,6 @@ module.exports = {
             assets: ['CHANGELOG.md', 'Chart.yaml'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
         }],
-        '@semantic-release/release-notes-generator',
         ['@semantic-release/changelog', {
             changelogFile: 'CHANGELOG.md',
         }],
