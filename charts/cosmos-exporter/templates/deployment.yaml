@@ -1,56 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $.Values.appName }}
+  name: {{ include "cosmos-exporter.name"  . }}
   labels:
-    {{- include "cosmos-exporter.labels" $ | nindent 4 }}
-    k8s-app: {{ $.Values.appName }}
+    {{- include "cosmos-exporter.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicas }}
-  revisionHistoryLimit: 10
-  serviceName: "{{ $.Values.appName }}"
-  updateStrategy:
+  replicas: 1
+  strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 20%
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
-      {{- include "cosmos-exporter.selectorLabels" $ | nindent 6 }}
-      k8s-app: {{ $.Values.appName }}
+      {{- include "cosmos-exporter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         {{- include "cosmos-exporter.labels" . | nindent 8 }}
-        k8s-app: {{ $.Values.appName }}
       annotations:
-        rollme: {{ randAlphaNum 5 | quote }}
-        reloader.stakater.com/auto: "true"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "{{ .Values.port }}"
     spec:
       containers:
-        - name: {{ $.Values.appName }}
-          image: "{{ $.Values.appImage.repo }}:{{ $.Values.appImage.tag }}"
-          imagePullPolicy: {{ $.Values.appImage.pullPolicy }}
-          env:
-            {{- range $.Values.appEnv }}
-            - name: {{ .name }}
-              value: {{ .value | quote }}
-            {{- end }}
+        - name: {{ include "cosmos-exporter.name"  . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env: {{- include "mergedEnv" . | nindent 8 }}
           ports:
-            {{- range $.Values.services.ports }}
-            - containerPort: {{ .port }}
-              protocol: {{ .protocol }}
-            {{- end }}
-          {{- if $.Values.appProbes }}
-          {{- toYaml $.Values.appProbes | nindent 10 }}
+            - name: http
+              containerPort: {{ .Values.port }}
+              protocol: TCP
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with $.Values.appResources }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
       imagePullSecrets:
-        {{- toYaml $.Values.imagePullSecrets | nindent 8 }}
-      serviceAccountName: {{ include "cosmos-exporter.serviceAccountName" . }}
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       affinity:
-        {{- toYaml $.Values.affinity | nindent 8 }}
+        {{- toYaml .Values.affinity | nindent 8 }}
       tolerations:
-        {{- toYaml $.Values.tolerations | nindent 8 }}
+        {{- toYaml .Values.tolerations | nindent 8 }}
