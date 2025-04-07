@@ -8,7 +8,6 @@ module.exports = {
                 { type: 'fix', release: 'patch' },
             ],
         }],
-        '@semantic-release/release-notes-generator',
         ['@semantic-release/changelog', {
             changelogFile: 'CHANGELOG.md',
         }],
