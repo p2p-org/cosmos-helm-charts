@@ -35,7 +35,7 @@ Common labels
 */}}
 {{- define "cosmos-exporter.labels" -}}
 helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
-app.kubernetes.io/name: {{ $.Values.appName }}
+app.kubernetes.io/name: {{ $.Chart.Name }}
 app.kubernetes.io/instance: {{ $.Release.Name }}
 app.kubernetes.io/version: {{ $.Chart.AppVersion }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -45,27 +45,37 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "cosmos-exporter.selectorLabels" -}}
-app.kubernetes.io/name: {{ $.Values.appName }}
+app.kubernetes.io/name: {{ $.Chart.Name }}
 app.kubernetes.io/instance: {{ $.Release.Name }}
 {{- end -}}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "cosmos-exporter.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "cosmos-exporter.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
 
-{{/*
-Docker configuration file for use as the Secret's payload
-*/}}
-{{- define "imagePullSecret" }}
-{{- with .Values.imageCredentials }}
-{{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
-{{- end }}
-{{- end }}
+{{- define "mergedEnv" -}}
+  {{- $envOverrides := .Values.envOverride | default (list) }}
+  {{- $env := .Values.env | default (list) }}
+  {{- $result := list }}
 
+  {{- range $envItem := $env }}
+    {{- $override := false }}
+    {{- range $envOverride := $envOverrides }}
+      {{- if eq $envOverride.name $envItem.name }}
+        {{- $override = $envOverride }}
+      {{- end }}
+    {{- end }}
+
+    {{- if $override }}
+      {{- $result = append $result (dict "name" $envItem.name "value" $override.value) }}
+    {{- else }}
+      {{- $result = append $result (dict "name" $envItem.name "value" $envItem.value) }}
+    {{- end }}
+  {{- end }}
+
+  {{- range $item := $result }}
+    - name: {{ $item.name }}
+    {{- if $item.value }}
+      value: "{{ $item.value }}"
+    {{- else }}
+      value: ""
+    {{- end }}
+  {{- end }}
+{{- end -}}

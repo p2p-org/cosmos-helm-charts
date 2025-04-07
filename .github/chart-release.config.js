@@ -1,5 +1,5 @@
 module.exports = {
-    branches: ['main', 'antonio/rcosmos-exporter'],
+    branches: ['main'],
     plugins: [
         ['@semantic-release/commit-analyzer', {
             preset: 'conventionalcommits',
@@ -8,12 +8,12 @@ module.exports = {
                 { type: 'fix', release: 'patch' },
             ],
         }],
-        ['@semantic-release/changelog', {
-            changelogFile: 'CHANGELOG.md',
-        }],
         ['@semantic-release/git', {
             assets: ['CHANGELOG.md', 'Chart.yaml'],
             message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+        }],
+        ['@semantic-release/changelog', {
+            changelogFile: 'CHANGELOG.md',
         }],
         ['@semantic-release/exec', {
             prepareCmd: `
