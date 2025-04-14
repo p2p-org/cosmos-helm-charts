@@ -21,7 +21,7 @@ env:
     value: ""
   - name: RPC_ENDPOINTS
     value: ""
-  - name: MODE:
+  - name: MODE
     value: Network
 
 
