@@ -49,7 +49,6 @@ app.kubernetes.io/name: {{ $.Chart.Name }}
 app.kubernetes.io/instance: {{ $.Release.Name }}
 {{- end -}}
 
-
 {{- define "mergedEnv" -}}
   {{- $envOverrides := .Values.envOverride | default (list) }}
   {{- $env := .Values.env | default (list) }}
