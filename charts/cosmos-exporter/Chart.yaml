@@ -3,4 +3,4 @@ name: cosmos-exporter
 description: A Helm chart for validator signatures verification in a specific cosmos network
 type: application
 version: 1.0.1
-appVersion: "0.7.1"
+appVersion: "0.8.0"
