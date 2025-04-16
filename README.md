@@ -95,3 +95,4 @@ By following these conventions, you help maintain a clear and useful git history
 ### Testing Your Changes
 
 Tests are ran on PR.
+
