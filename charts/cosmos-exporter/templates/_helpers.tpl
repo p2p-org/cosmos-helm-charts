@@ -70,6 +70,19 @@ app.kubernetes.io/instance: {{ $.Release.Name }}
     {{- end }}
   {{- end }}
 
+  {{/* Add any new environment variables from envOverride that don't exist in env */}}
+  {{- range $envOverride := $envOverrides }}
+    {{- $exists := false }}
+    {{- range $envItem := $env }}
+      {{- if eq $envItem.name $envOverride.name }}
+        {{- $exists = true }}
+      {{- end }}
+    {{- end }}
+    {{- if not $exists }}
+      {{- $result = append $result (dict "name" $envOverride.name "value" $envOverride.value) }}
+    {{- end }}
+  {{- end }}
+
   {{- range $item := $result }}
     - name: {{ $item.name }}
     {{- if $item.value }}
