@@ -27,6 +27,7 @@ spec:
         - name: {{ include "cosmos-exporter.name"  . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          serviceAccountName: {{ include "cosmos-exporter.serviceAccountName" . }}
           env: {{- include "mergedEnv" . | nindent 8 }}
           ports:
             - name: http
