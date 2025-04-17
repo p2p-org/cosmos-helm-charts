@@ -91,3 +91,14 @@ app.kubernetes.io/instance: {{ $.Release.Name }}
     {{- end }}
   {{- end }}
 {{- end -}}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "cosmos-exporter.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "cosmos-exporter.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
