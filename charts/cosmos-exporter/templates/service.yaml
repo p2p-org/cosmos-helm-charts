@@ -4,6 +4,10 @@ metadata:
   name: {{ include "cosmos-exporter.fullname" . }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "{{ .Values.port }}"
 spec:
   type: ClusterIP
   ports:
