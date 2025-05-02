@@ -18,10 +18,6 @@ spec:
     metadata:
       labels:
         {{- include "cosmos-exporter.labels" . | nindent 8 }}
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: "/metrics"
-        prometheus.io/port: "{{ .Values.port }}"
     spec:
       containers:
         - name: {{ include "cosmos-exporter.name"  . }}
