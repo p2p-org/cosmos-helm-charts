@@ -132,3 +132,6 @@ autoscaling:
 # The port to expose the service on
 service:
   port: 8080
+
+# Create a secret for the image pull secret
+createSecret: false
