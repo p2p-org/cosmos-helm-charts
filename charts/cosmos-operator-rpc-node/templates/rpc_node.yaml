@@ -89,6 +89,16 @@ spec:
       {{ end }}
     {{ end }}
   podTemplate:
+    {{- if .Values.cosmosNodeLabels }}
+    metadata:
+      labels:
+        {{- toYaml .Values.cosmosNodeLabels | nindent 8 }}
+    {{- end }}
+    {{- if .Values.cosmosNodeAnnotations }}
+    metadata:
+      annotations:
+        {{- toYaml .Values.cosmosNodeAnnotations | nindent 8 }}
+    {{- end }}
     imagePullPolicy: "Always"
     imagePullSecrets:
       - name: {{ .Values.imagePullSecrets }}
@@ -148,6 +158,11 @@ spec:
     rpcTemplate:
       publishNotReadyAddresses: true
     {{ end }}
+  {{ if and (eq (int .Values.replicas) 1) .Values.rollingUpdateEnabled }}
+  instanceOverrides:
+    {{ .Release.Name }}-1:
+      disable: All
+  {{ end }}
   volumeClaimTemplate:
     resources:
       requests:
