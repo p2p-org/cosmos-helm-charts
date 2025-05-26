@@ -1,0 +1,98 @@
+nameOverride: ""
+fullnameOverride: ""
+
+port: &appPort 9100
+
+image:
+  repository: ghcr.io/p2p-org/rcosmos-exporter
+  pullPolicy: Always
+  tag: v1.1.6
+
+env:
+  - name: PROMETHEUS_IP
+    value: 0.0.0.0
+  - name: PROMETHEUS_PORT
+    value: *appPort
+  - name: BLOCK_WINDOW
+    value: 500
+  - name: BLOCKCHAIN
+    value: ""
+  - name: REST_ENDPOINTS
+    value: ""
+  - name: RPC_ENDPOINTS
+    value: ""
+  - name: MODE
+    value: Network
+  - name: NETWORK
+    value: ""
+
+
+envOverride: []
+  # - name: BLOCKCHAIN
+  #   value: Tendermint
+  # - name: RPC_ENDPOINTS
+  #   value: https://rpc.testnet.mezo.tm.p2p.world,/status
+  # - name: REST_ENDPOINTS
+  #   value: https://api.testnet.mezo.tm.p2p.world,/cosmos/base/node/v1beta1/status
+
+
+livenessProbe:
+  tcpSocket:
+    port: *appPort
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: *appPort
+  periodSeconds: 5
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+
+resources:
+  requests:
+    memory: "200Mi"
+  limits:
+    memory: "200Mi"
+
+imagePullSecrets:
+- name: github-secret
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: exporters
+          operator: In
+          values:
+          - "true"
+
+
+tolerations: []
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+#
+# If you want to use Vault secrets see: https://github.com/p2p-org/iaas-platform/blob/main/docs/vault/index.md
+#
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  #
+  name: ""
+
+# This section builds the Vault secrets cluster role
+vaultClusterRole:
+  # If the role must be created
+  create: false
+
+

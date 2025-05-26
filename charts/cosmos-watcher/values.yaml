@@ -1,0 +1,137 @@
+# Default values for cosmos-watcher.
+replicaCount: 1
+
+# Container configurations
+containers:
+  main:
+    image: ghcr.io/p2p-org/devops-cosmos-watcher
+    tag: v1.0.0
+    pullPolicy: Always
+    ports:
+      - name: http
+        containerPort: 8080
+        protocol: TCP
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 100m
+    command: []
+    args: []
+    livenessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 60
+      periodSeconds: 20
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      tcpSocket:
+        port: 8080
+      periodSeconds: 5
+      timeoutSeconds: 1
+      failureThreshold: 3
+    volumeMounts: []
+    env:
+      - name: GITHUB_API_URL
+        value: https://raw.githubusercontent.com
+      - name: CHAIN_REGISTRY_BASE_URL
+        value: /cosmos/chain-registry/master
+      - name: SLACK_WEBHOOK_URL
+        valueFrom:
+          secretKeyRef:
+            name: slack-webhook-url
+            key: url
+      - name: POLLING_INTERVAL
+        value: 5m
+      - name: LOG_LEVEL
+        value: info
+      - name: CACHE_DURATION
+        value: 5m
+    envFrom: []
+
+imagePullSecrets:
+- name: github-secret
+
+persistence:
+  enabled: false
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# External Secrets configuration
+externalSecrets: []
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Affinity settings
+affinity: {}
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Additional labels
+labels: {}
+
+# Pod annotations
+podAnnotations: {}
+
+# Service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Pod security context
+podSecurityContext: {}
+
+# Security context
+securityContext: {}
+
+# Image pull policy
+imagePullPolicy: Always
+
+# Additional volumes
+volumes: []
+
+# Additional volumes
+additionalVolumes: []
+
+# Init containers
+initContainers: {}
+
+# Deployment strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Autoscaling configuration
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+# The port to expose the service on
+service:
+  port: 8080
+
+# Create a secret for the image pull secret
+createSecret: false
