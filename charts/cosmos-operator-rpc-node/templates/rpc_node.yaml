@@ -11,8 +11,10 @@ metadata:
   annotations:
     {{- toYaml .Values.cosmosNodeAnnotations | nindent 4 }}
   {{ end }}
-
 spec:
+  {{- if eq .Values.blch.nodeType "sentry" }}
+  type: "Sentry"
+  {{- end }}
   {{ if and (eq (int .Values.replicas) 1) .Values.rollingUpdateEnabled }}
   # Only one replica will be running, the second replica will be disabled and used only during rolling updates
   replicas: 2
@@ -137,6 +139,30 @@ spec:
         {{ toYaml $value | nindent 8 }}
       {{- end }}
     {{- end }}
+    {{- if eq .Values.blch.nodeType "sentry" }}
+    containers:
+      - name: rcosmos-exporter
+        image: ghcr.io/p2p-org/rcosmos-exporter:v1.1.3
+        ports:
+          - containerPort: 9100
+        env:
+          - name: MODE
+            value: Node
+          - name: BLOCKCHAIN
+            value: Tendermint
+          - name: NODE_RPC_ENDPOINT
+            value: http://localhost:26657
+          - name: NODE_REST_ENDPOINT
+            value: http://localhost:1317
+          - name: NODE_RPC_GRPC_PORT
+            value: "9090"
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['app.kubernetes.io/instance']
+          - name: NETWORK
+            value: "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
+    {{- end }}    
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}
     {{ end }}
