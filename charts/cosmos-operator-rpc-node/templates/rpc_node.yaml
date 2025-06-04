@@ -91,15 +91,16 @@ spec:
       {{ end }}
     {{ end }}
   podTemplate:
-    {{- if .Values.cosmosNodeLabels }}
+    {{- if .Values.cosmosNodeLabels || .Values.cosmosNodeAnnotations }}
     metadata:
+      {{- if .Values.cosmosNodeLabels }}
       labels:
         {{- toYaml .Values.cosmosNodeLabels | nindent 8 }}
-    {{- end }}
-    {{- if .Values.cosmosNodeAnnotations }}
-    metadata:
+      {{- end }}
+      {{- if .Values.cosmosNodeAnnotations }}
       annotations:
         {{- toYaml .Values.cosmosNodeAnnotations | nindent 8 }}
+      {{- end }}
     {{- end }}
     imagePullPolicy: "Always"
     imagePullSecrets:
