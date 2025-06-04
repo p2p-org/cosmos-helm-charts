@@ -91,7 +91,7 @@ spec:
       {{ end }}
     {{ end }}
   podTemplate:
-    {{- if .Values.cosmosNodeLabels || .Values.cosmosNodeAnnotations }}
+    {{- if or .Values.cosmosNodeLabels .Values.cosmosNodeAnnotations }}
     metadata:
       {{- if .Values.cosmosNodeLabels }}
       labels:
