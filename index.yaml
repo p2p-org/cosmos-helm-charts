@@ -1,0 +1,293 @@
+apiVersion: v1
+entries:
+  allora-worker:
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-06-06T15:52:10.767561984Z"
+    description: A Helm chart for deploying an allora worker
+    digest: 0f34db013a1138426c832e0a5364627c580bacb9addf41538f80d5092ee65d1e
+    name: allora-worker
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/allora-worker-1.1.0.tgz
+    version: 1.1.0
+  cosmos-exporter:
+  - apiVersion: v2
+    appVersion: 1.12.0
+    created: "2025-06-06T15:52:10.770313922Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 802d0ad0154802806ac7787071590a1228ff20e0360849ec8e4e09170eff288f
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.12.0.tgz
+    version: 1.12.0
+  - apiVersion: v2
+    appVersion: 1.11.0
+    created: "2025-06-06T15:52:10.76970592Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 01325294f12a24d630a5e5227a5ea8e937e81aba96c78f4dadc2e66c1b533e41
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.11.0.tgz
+    version: 1.11.0
+  - apiVersion: v2
+    appVersion: 1.10.0
+    created: "2025-06-06T15:52:10.769311971Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 7a5ea794bcde3d86ad90af373164cb67b10cedf2334988d72bac8e5988dfd835
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.10.0.tgz
+    version: 1.10.0
+  - apiVersion: v2
+    appVersion: 1.9.0
+    created: "2025-06-06T15:52:10.7751492Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: f134e92cd44ae6732cd72ac0bf1cf260940f6bbaf11063642ed731e91cf26e84
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.9.0.tgz
+    version: 1.9.0
+  - apiVersion: v2
+    appVersion: 1.8.0
+    created: "2025-06-06T15:52:10.774750571Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 3a24aba650d77a922e09556b34d4d7b7623a1394783884f0a3e863091eea698f
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.8.0.tgz
+    version: 1.8.0
+  - apiVersion: v2
+    appVersion: 1.7.2
+    created: "2025-06-06T15:52:10.774319642Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 0f18c565f6850eb5989a0681a23d2fe576325626d159d3831d9101175004d1d4
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.7.2.tgz
+    version: 1.7.2
+  - apiVersion: v2
+    appVersion: 1.7.1
+    created: "2025-06-06T15:52:10.773928558Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: bae6478d9060a0c85a17a2aae16ca6181c4aaef500a96e2e470c24cdb7a45f02
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.7.1.tgz
+    version: 1.7.1
+  - apiVersion: v2
+    appVersion: 1.7.0
+    created: "2025-06-06T15:52:10.773280694Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 18c5942cc1f79967ec9621ec88deddcaae2df7bda681c03ac8765a0f2e64f294
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.7.0.tgz
+    version: 1.7.0
+  - apiVersion: v2
+    appVersion: 1.6.0
+    created: "2025-06-06T15:52:10.772444463Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: d8b7fcaefe5c99bf29898f5ede4521282c6935c1c2c2503bbde510303e1de4ce
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.6.0.tgz
+    version: 1.6.0
+  - apiVersion: v2
+    appVersion: 1.5.0
+    created: "2025-06-06T15:52:10.771698563Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 3f50d0526979294c7f2f23f3b7be11cb1214d5b9b02f2c288de3bd6b051cee63
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.5.0.tgz
+    version: 1.5.0
+  - apiVersion: v2
+    appVersion: 1.4.0
+    created: "2025-06-06T15:52:10.771309382Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: a686e716031c84458f2f838984cd61a37ce3edd5944315190a8049e8f7c2dece
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
+    appVersion: 1.3.0
+    created: "2025-06-06T15:52:10.770950989Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: c80cd0f6bca33bfff1a14546cf6fe65fce2409a4f554d14e934d5d75dedccded
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2025-06-06T15:52:10.770634855Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 9bbde0708f251eb84d21ef90ff446137d2a8f1aebdb65d329013c83f4fcd93c5
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-06-06T15:52:10.768941124Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 039e1a74a109d08a9c911aa5fea047e28a639fe04d4ccac754c15d3cc19c60fd
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 1.0.2
+    created: "2025-06-06T15:52:10.768614551Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 31a571418960b8d698c06305915de0525ba94eb9059b5d6c62b2028a0c72c514
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-06-06T15:52:10.76826264Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: 86bd71208b7284ee1411a466091deb796f2200ef106dd1078808312faa7a5fb0
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-06-06T15:52:10.767928482Z"
+    description: A Helm chart for validator signatures verification in a specific
+      cosmos network
+    digest: dbfea06010ad05cfcb28afe6ac9faa069d2509fc57542a3e0b9cb3bbdaebd265
+    name: cosmos-exporter
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-exporter-1.0.0.tgz
+    version: 1.0.0
+  cosmos-operator-rpc-node:
+  - apiVersion: v2
+    appVersion: 1.3.0
+    created: "2025-06-06T15:52:10.776752491Z"
+    description: A Helm chart for deploying an RPC node using the Cosmos Operator
+    digest: 14ce4f55bdb3f908430c4e38df4abff1d32a23026839cc1e505fe34f01c7aecb
+    name: cosmos-operator-rpc-node
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-operator-rpc-node-1.3.0.tgz
+    version: 1.3.0
+  - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2025-06-06T15:52:10.776255247Z"
+    description: A Helm chart for deploying an RPC node using the Cosmos Operator
+    digest: cfa5d91f58e16bba5cc4d1573860a4504a9c816047f6f4468295b05982a960b8
+    name: cosmos-operator-rpc-node
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-operator-rpc-node-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-06-06T15:52:10.775728398Z"
+    description: A Helm chart for deploying an RPC node using the Cosmos Operator
+    digest: 5f35711515cb92c6d6b6e240dc17372335b0f9d98e478f42c812ec58af087946
+    name: cosmos-operator-rpc-node
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-operator-rpc-node-1.1.0.tgz
+    version: 1.1.0
+  cosmos-watcher:
+  - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-06-06T15:52:10.77781699Z"
+    description: A Helm chart for deploying the Cosmos Watcher API
+    digest: c690b9e0b9a405be85f0ea691d7de70a1c433a8724c894c4a0c0d1798bfce46b
+    name: cosmos-watcher
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-watcher-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-06-06T15:52:10.77724671Z"
+    description: A Helm chart for deploying the Cosmos Watcher API
+    digest: a8a93183647fb8d01301d72aa8a29d67127cf80d63c96354a2d46ff4243a544e
+    name: cosmos-watcher
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/cosmos-watcher-1.0.0.tgz
+    version: 1.0.0
+  namada-indexer:
+  - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-06-06T15:52:10.794820016Z"
+    dependencies:
+    - condition: postgresOperator.install.enabled
+      name: postgres-operator
+      repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+      version: 1.13.0
+    - condition: redis.install.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.5.0
+    description: A Helm chart for deploying a namada indexer
+    digest: 87c274afe434d6754421e857956e32ff2ae7fe2c06eab9795d8dffbe170b59a0
+    name: namada-indexer
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/namada-indexer-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-06-06T15:52:10.786389844Z"
+    dependencies:
+    - condition: postgresOperator.install.enabled
+      name: postgres-operator
+      repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+      version: 1.13.0
+    - condition: redis.install.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.5.0
+    description: A Helm chart for deploying a namada indexer
+    digest: ea82555167a2e0db810814c234d7eb04e81607423b3617346c3970ea8ecb6278
+    name: namada-indexer
+    type: application
+    urls:
+    - https://p2p-org.github.io/cosmos-helm-charts/namada-indexer-1.0.1.tgz
+    version: 1.0.1
+generated: "2025-06-06T15:52:10.766909589Z"
