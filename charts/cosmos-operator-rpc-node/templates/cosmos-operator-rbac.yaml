@@ -1,0 +1,190 @@
+{{- if .Values.cosmosOperatorRBAC.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cosmos-operator-rolebinding
+  labels:
+    team: "cosmos"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cosmos-operator-role
+subjects:
+- kind: ServiceAccount
+  name: cosmos-operator-controller-manager
+  namespace: {{ .Values.cosmosOperatorRBAC.namespace }}  
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cosmos-operator-role
+  labels:
+    team: "cosmos"
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - persistentvolumeclaims
+  - pods
+  - serviceaccounts
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - cosmosfullnodes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - cosmosfullnodes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - cosmosfullnodes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - scheduledvolumesnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - scheduledvolumesnapshots/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - scheduledvolumesnapshots/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - statefuljobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - statefuljobs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cosmos.strange.love
+  resources:
+  - statefuljobs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  - roles
+  verbs:
+  - bind
+  - create
+  - delete
+  - escalate
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+{{- end }}

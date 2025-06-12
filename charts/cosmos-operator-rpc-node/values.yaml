@@ -75,6 +75,11 @@ blch:
   # additionalStartArgs: ""
   # homeDir: ""
 
+# RBAC for the cosmos-operator to manage the RPC node, use when running the operator in namespace-scoped mode, otherwise set to false.
+cosmosOperatorRBAC:
+  enabled: false
+  namespace: "cosmos-operator-system"
+
   # Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
   # pruning:
   #   strategy: "custom"
