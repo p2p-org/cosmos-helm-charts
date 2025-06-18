@@ -6,7 +6,7 @@ port: &appPort 9100
 image:
   repository: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: v1.1.8
+  tag: v1.1.9
 
 env:
   - name: PROMETHEUS_IP

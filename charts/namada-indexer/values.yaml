@@ -24,6 +24,13 @@ postgresOperator:
   version: ""
   parameters: {}
   resourcePolicy: ""
+  resources:
+    requests:
+      cpu: ""
+      memory: ""
+    limits:
+      cpu: ""
+      memory: ""
 
 externalPostgres:
   enabled: false
