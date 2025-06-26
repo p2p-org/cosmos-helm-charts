@@ -6,7 +6,7 @@ kind: Service
 metadata:
   name: {{ $.Release.Name }}-sentry-{{ $i }}
   labels:
-    team: "cosmos"
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
 spec:
   clusterIP: None
   selector:

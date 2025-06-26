@@ -1,0 +1,14 @@
+{{- if gt (int .Values.replicas) 1 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-pdb
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+{{- end }}

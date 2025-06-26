@@ -5,7 +5,7 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-metrics
   labels:
-    app.kubernetes.io/name: {{ .Release.Name }}
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
 spec:
   selector:
     app.kubernetes.io/name: {{ .Release.Name }}
@@ -19,6 +19,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-sdk-metrics
   labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -37,6 +38,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-external-latest-height
   labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -69,6 +71,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-internal-latest-height
   labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -101,6 +104,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-rpc-endpoint
   labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:

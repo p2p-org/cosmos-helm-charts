@@ -3,6 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-public-snapshot
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS

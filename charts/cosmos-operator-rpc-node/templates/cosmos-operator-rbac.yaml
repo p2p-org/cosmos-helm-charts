@@ -5,7 +5,7 @@ kind: RoleBinding
 metadata:
   name: cosmos-operator-rolebinding
   labels:
-    team: "cosmos"
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -20,7 +20,7 @@ kind: Role
 metadata:
   name: cosmos-operator-role
   labels:
-    team: "cosmos"
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
 rules:
 - apiGroups:
   - ""

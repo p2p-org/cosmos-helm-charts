@@ -12,6 +12,10 @@ metadata:
     {{- toYaml .Values.cosmosNodeAnnotations | nindent 4 }}
   {{ end }}
 spec:
+  {{- if .Values.commonLabels }}
+  globalLabels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+  {{- end }}
   {{- if eq .Values.blch.nodeType "sentry" }}
   type: "Sentry"
   {{- end }}

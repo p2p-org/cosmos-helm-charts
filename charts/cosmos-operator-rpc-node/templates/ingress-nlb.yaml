@@ -8,6 +8,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ default $name $val.ingressName }}-nlb
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
   annotations:
     {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}
     {{- if $.Values.basicAuth.enabled }}

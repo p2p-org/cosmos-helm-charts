@@ -30,6 +30,11 @@ rollingUpdateEnabled: false
 # cosmosNodeAnnotations: {}
 # priorityClassName
 
+# Common labels to be applied to all resources
+# commonLabels:
+#   team: "cosmos"
+#   environment: "production"
+
 service:
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true

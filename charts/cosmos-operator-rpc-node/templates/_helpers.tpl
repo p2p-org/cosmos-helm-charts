@@ -9,3 +9,12 @@
 {{- printf "%s-%s-%s.%s" $context.Release.Name $context.Values.blch.nodeType $endpointName $context.Values.endpointsBaseDomain }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "cosmos-operator-rpc-node.commonLabels" -}}
+{{- if and .Values.commonLabels (kindIs "map" .Values.commonLabels) }}
+{{- toYaml .Values.commonLabels | nindent 0 }}
+{{- end }}
+{{- end }}
