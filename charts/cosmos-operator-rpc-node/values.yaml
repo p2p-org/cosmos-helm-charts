@@ -20,6 +20,11 @@ volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
 
+# For sentry nodes only
+# cosmosExporter:
+#   image: 
+#   tag: 
+
 # resources: {}
 
 # Optional additional configuration for the pod template
@@ -39,8 +44,8 @@ service:
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
 # Optional additional configuration for the services
+# maxP2PExternalAddresses: 1
 # additionalServiceConfig:
-#   maxP2PExternalAddresses: 1
 #   p2pTemplate:
 #     metadata:
 #       labels:
