@@ -39,8 +39,8 @@ service:
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
 # Optional additional configuration for the services
+# maxP2PExternalAddresses: 1
 # additionalServiceConfig:
-#   maxP2PExternalAddresses: 1
 #   p2pTemplate:
 #     metadata:
 #       labels:

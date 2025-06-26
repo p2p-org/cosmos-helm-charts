@@ -184,9 +184,10 @@ spec:
     priorityClassName: {{ .Values.priorityClassName }}
     {{ end }}
   service:
-  {{ if .Values.additionalServiceConfig }}
-    {{ toYaml .Values.additionalServiceConfig | nindent 6 }}
-  {{ end }}
+    {{- if .Values.additionalServiceConfig }}
+    {{- toYaml .Values.additionalServiceConfig | nindent 4 }}
+    {{- end }}
+    maxP2PExternalAddresses: {{ .Values.maxP2PExternalAddresses | default .Values.replicas }}
     {{ if .Values.service.publishSvcDuringSync }}
     rpcTemplate:
       publishNotReadyAddresses: true
