@@ -85,8 +85,7 @@ app.kubernetes.io/instance: {{ $.Release.Name }}
   {{- range $item := $result }}
     - name: {{ $item.name }}
     {{- if hasKey $item "valueFrom" }}
-      valueFrom:
-{{ toYaml $item.valueFrom | indent 6 }}
+      valueFrom:{{ toYaml $item.valueFrom | nindent 8 }}
     {{- else if hasKey $item "value" }}
       value: "{{ $item.value }}"
     {{- else }}
