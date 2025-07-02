@@ -178,7 +178,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.labels['app.kubernetes.io/instance']
           - name: NETWORK
-            value: "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
+            value: {{ if .Values.cosmosExporter.network }}{{ .Values.cosmosExporter.network | quote }}{{ else }}"{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"{{ end }}
     {{- end }}    
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}

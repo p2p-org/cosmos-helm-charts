@@ -24,6 +24,8 @@ rollingUpdateEnabled: false
 # cosmosExporter:
 #   image: 
 #   tag: 
+#   # Optional: Override the network name for the cosmos-exporter. If not set, defaults to "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
+#   network: ""
 
 # resources: {}
 
