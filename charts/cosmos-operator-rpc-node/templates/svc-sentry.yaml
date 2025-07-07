@@ -15,6 +15,15 @@ spec:
     - protocol: TCP
       port: 1234
       targetPort: 1234
+      name: p2p
+    - protocol: TCP
+      port: 26657
+      targetPort: 26657
+      name: rpc
+    - protocol: TCP
+      port: 1317
+      targetPort: 1317
+      name: rest
   publishNotReadyAddresses: true      
 {{- end }}
 {{- end }}

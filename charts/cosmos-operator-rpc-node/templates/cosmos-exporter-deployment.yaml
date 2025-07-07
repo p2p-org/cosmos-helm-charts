@@ -1,0 +1,97 @@
+{{- if eq .Values.blch.nodeType "sentry" }}
+{{- range $i := until (int .Values.replicas) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-cosmos-exporter-{{ $i }}
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: cosmos-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: cosmos-exporter
+      app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+  template:
+    metadata:
+      labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: cosmos-exporter
+        app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100" 
+        prometheus.io/path: "/metrics"
+    spec:
+      imagePullSecrets:
+        - name: {{ $.Values.imagePullSecrets }}
+      containers:
+        - name: cosmos-exporter
+          image: {{ $.Values.cosmosExporter.image }}:{{ $.Values.cosmosExporter.tag }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9100
+              name: metrics
+              protocol: TCP
+          env:
+            - name: MODE
+              value: Node
+            - name: BLOCKCHAIN
+              value: Tendermint
+            - name: NODE_RPC_ENDPOINT
+              value: http://{{ $.Release.Name }}-sentry-{{ $i }}:26657
+            - name: NODE_REST_ENDPOINT
+              value: http://{{ $.Release.Name }}-sentry-{{ $i }}:1317
+            - name: NODE_RPC_GRPC_PORT
+              value: "9090"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/instance']
+            - name: NETWORK
+              value: {{ if $.Values.cosmosExporter.network }}{{ $.Values.cosmosExporter.network | quote }}{{ else }}"{{ $.Values.blch.protocol }}-{{ $.Values.blch.network }}"{{ end }}
+          {{- if $.Values.resources }}
+          resources:
+            {{ toYaml $.Values.resources | nindent 12 }}
+          {{- end }}
+      {{- if $.Values.nodeSelectorLabel }}
+      nodeSelector:
+        {{ toYaml $.Values.nodeSelectorLabel | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.nodeSelectorKey }}
+      affinity:
+        {{- if $.Values.podAntiAffinityPerNode }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ $.Release.Name }}-cosmos-exporter-{{ $i }}
+            topologyKey: "kubernetes.io/hostname"
+        {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              {{- if $.Values.affinityAdditionalMatches }}
+              {{ toYaml $.Values.affinityAdditionalMatches | nindent 14 }}
+              {{- end }}
+              - key: blch
+                operator: In
+                values:
+                - "true"
+              - key: {{ $.Values.nodeSelectorKey }}
+                operator: In
+                values:
+                - "true"
+      {{- end }}
+      {{- if $.Values.priorityClassName }}
+      priorityClassName: {{ $.Values.priorityClassName }}
+      {{- end }}
+{{- end }}
+{{- end }} 
