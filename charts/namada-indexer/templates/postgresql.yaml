@@ -12,6 +12,13 @@ metadata:
     "argocd.argoproj.io/sync-wave": "0"
     {{- end }}
 spec:
+  resources:
+    requests:
+      cpu: {{ .Values.postgresOperator.resources.requests.cpu | default "10m" }}
+      memory: {{ .Values.postgresOperator.resources.requests.memory | default "100Mi" }}
+    limits:
+      cpu: {{ .Values.postgresOperator.resources.limits.cpu | default "300m" }}
+      memory: {{ .Values.postgresOperator.resources.limits.memory | default "300Mi" }}
   teamId: {{ .Values.postgresOperator.teamId }}
   {{- if .Values.postgresOperator.kubernetes }}
   kubernetes:

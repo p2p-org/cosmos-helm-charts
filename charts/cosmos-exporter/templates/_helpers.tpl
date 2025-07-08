@@ -63,9 +63,9 @@ app.kubernetes.io/instance: {{ $.Release.Name }}
     {{- end }}
 
     {{- if $override }}
-      {{- $result = append $result (dict "name" $envItem.name "value" $override.value) }}
+      {{- $result = append $result (merge $envItem $override) }}
     {{- else }}
-      {{- $result = append $result (dict "name" $envItem.name "value" $envItem.value) }}
+      {{- $result = append $result $envItem }}
     {{- end }}
   {{- end }}
 
@@ -78,13 +78,15 @@ app.kubernetes.io/instance: {{ $.Release.Name }}
       {{- end }}
     {{- end }}
     {{- if not $exists }}
-      {{- $result = append $result (dict "name" $envOverride.name "value" $envOverride.value) }}
+      {{- $result = append $result $envOverride }}
     {{- end }}
   {{- end }}
 
   {{- range $item := $result }}
     - name: {{ $item.name }}
-    {{- if $item.value }}
+    {{- if hasKey $item "valueFrom" }}
+      valueFrom:{{ toYaml $item.valueFrom | nindent 8 }}
+    {{- else if hasKey $item "value" }}
       value: "{{ $item.value }}"
     {{- else }}
       value: ""

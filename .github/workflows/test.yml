@@ -46,4 +46,13 @@ jobs:
       - name: Run Helm template
         run: helm template ${{ matrix.chart_dir }} -f ${{ matrix.chart_dir }}/values.yaml
 
+  all-tests-pass:
+    needs: test-charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: All chart tests passed
+        run: |
+          echo "✅ All chart tests have passed successfully!"
+          echo "This job ensures all matrix test jobs completed successfully."
+
 
