@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cosmos-exporter.fullname" . }}-config
+  labels:
+    {{- include "cosmos-exporter.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+    general:
+      network: {{ .Values.config.general.network }}
+      chain_id: {{ .Values.config.general.chain_id | default "cometbft" }}
+      mode: {{ .Values.config.general.mode }}
+      metrics:
+        address: {{ .Values.config.general.metrics.address }}
+        port: {{ .Values.config.general.metrics.port }}
+        path: {{ .Values.config.general.metrics.path }}
+      alerting:
+        validators: {{ .Values.config.general.alerting.validators | default "[]" }}
+      nodes:
+        rpc:
+          {{- if .Values.config.nodes.rpc }}
+            {{- range .Values.config.nodes.rpc }}
+          - name: {{ .name }}
+            url: {{ .url }}
+            healthEndpoint: {{ .healthEndpoint }}
+            {{- end }}
+          {{- else }}
+          []
+          {{- end }}
+        lcd:
+          {{- if .Values.config.nodes.lcd }}
+            {{- range .Values.config.nodes.lcd }}
+          - name: {{ .name }}
+            url: {{ .url }}
+            healthEndpoint: {{ .healthEndpoint }}
+            {{- end }}
+          {{- else }}
+          []
+          {{- end }}
+
+    node:
+      tendermint:
+        nodeInfo:
+          enabled: {{ .Values.config.node.tendermint.nodeInfo.enabled }}
+          interval: {{ .Values.config.node.tendermint.nodeInfo.interval }}
+      cometbft:
+        status:
+          enabled: {{ .Values.config.node.cometbft.status.enabled }}
+          interval: {{ .Values.config.node.cometbft.status.interval }}
+
+    network:
+      cometbft:
+        validators:
+          enabled: {{ .Values.config.network.cometbft.validators.enabled }}
+          interval: {{ .Values.config.network.cometbft.validators.interval }}
+        block:
+          enabled: {{ .Values.config.network.cometbft.block.enabled }}
+          interval: {{ .Values.config.network.cometbft.block.interval }}
+          window: {{ .Values.config.network.cometbft.block.window }}
+          tx:
+            enabled: {{ .Values.config.network.cometbft.block.tx.enabled }}
+          uptime:
+            persistence: {{ .Values.config.network.cometbft.block.uptime.persistence }}
+
+      tendermint:
+        bank:
+          addresses: {{ .Values.config.network.tendermint.bank.addresses | default "[]" }}
+          enabled: {{ .Values.config.network.tendermint.bank.enabled }}
+          interval: {{ .Values.config.network.tendermint.bank.interval }}
+        distribution:
+          enabled: {{ .Values.config.network.tendermint.distribution.enabled }}
+          interval: {{ .Values.config.network.tendermint.distribution.interval }}
+        gov:
+          enabled: {{ .Values.config.network.tendermint.gov.enabled }}
+          interval: {{ .Values.config.network.tendermint.gov.interval }}
+        staking:
+          enabled: {{ .Values.config.network.tendermint.staking.enabled }}
+          interval: {{ .Values.config.network.tendermint.staking.interval }}
+        slashing:
+          enabled: {{ .Values.config.network.tendermint.slashing.enabled }}
+          interval: {{ .Values.config.network.tendermint.slashing.interval }}
+        upgrade:
+          enabled: {{ .Values.config.network.tendermint.upgrade.enabled }}
+          interval: {{ .Values.config.network.tendermint.upgrade.interval }}
+
+      mezo:
+        poa:
+          enabled: {{ .Values.config.network.mezo.poa.enabled }}
+          interval: {{ .Values.config.network.mezo.poa.interval }}
+
+      babylon:
+        bls:
+          enabled: {{ .Values.config.network.babylon.bls.enabled }}
+          interval: {{ .Values.config.network.babylon.bls.interval }}
+
+      lombard:
+        ledger:
+          addresses: {{ .Values.config.network.lombard.ledger.addresses | default "[]" }}
+          enabled: {{ .Values.config.network.lombard.ledger.enabled }}
+          interval: {{ .Values.config.network.lombard.ledger.interval }}
+
+      namada:
+        account:
+          addresses: {{ .Values.config.network.namada.account.addresses | default "[]" }}
+          enabled: {{ .Values.config.network.namada.account.enabled }}
+          interval: {{ .Values.config.network.namada.account.interval }}
+        pos:
+          enabled: {{ .Values.config.network.namada.pos.enabled }}
+          interval: {{ .Values.config.network.namada.pos.interval }}
+
+      coredao:
+        block:
+          enabled: {{ .Values.config.network.coredao.block.enabled }}
+          interval: {{ .Values.config.network.coredao.block.interval }}
+          window: {{ .Values.config.network.coredao.block.window }}
+        validator:
+          enabled: {{ .Values.config.network.coredao.validator.enabled }}
+          interval: {{ .Values.config.network.coredao.validator.interval }}
