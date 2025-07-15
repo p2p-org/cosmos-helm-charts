@@ -23,12 +23,16 @@ spec:
         - name: {{ include "cosmos-exporter.name"  . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          serviceAccountName: {{ include "cosmos-exporter.serviceAccountName" . }}
-          env: {{- include "mergedEnv" . | nindent 8 }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.port }}
               protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -43,7 +47,15 @@ spec:
           {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- with .Values.affinity }}
       affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "cosmos-exporter.fullname" . }}-config
