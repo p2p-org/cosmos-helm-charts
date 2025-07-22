@@ -27,6 +27,7 @@ config:
     lcd: []
 
   node:
+    client: ""
     tendermint:
       nodeInfo:
         enabled: true
