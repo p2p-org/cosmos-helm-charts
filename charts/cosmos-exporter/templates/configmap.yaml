@@ -39,6 +39,7 @@ data:
           {{- end }}
 
     node:
+      client: {{ .Values.config.node.client }}
       tendermint:
         nodeInfo:
           enabled: {{ .Values.config.node.tendermint.nodeInfo.enabled }}
