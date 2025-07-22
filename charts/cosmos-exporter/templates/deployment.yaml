@@ -7,10 +7,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
+    type: Recreate
   selector:
     matchLabels:
       {{- include "cosmos-exporter.selectorLabels" . | nindent 6 }}
