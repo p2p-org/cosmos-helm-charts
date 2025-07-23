@@ -1,3 +1,4 @@
+{{- if not .Values.useGatewayAPI }}
 {{- range $key, $val := .Values.endpoints }}
 {{- if $val.enabled }}
 {{- $name := printf "%s-%s" $.Release.Name $key }}
@@ -46,5 +47,6 @@ spec:
   - hosts:
     - {{ default $host $val.tlsHost | quote }}
     secretName: {{ default $tlsSecretName $val.tlsSecretName }}
+{{- end }}
 {{- end }}
 {{- end }}

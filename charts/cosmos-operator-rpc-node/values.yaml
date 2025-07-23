@@ -22,6 +22,7 @@ rollingUpdateEnabled: false
 
 # For sentry nodes only
 # cosmosExporter:
+#   enabled: false
 #   image: 
 #   tag: 
 #   # Optional: Override the network name for the cosmos-exporter. If not set, defaults to "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
@@ -131,6 +132,19 @@ basicAuth:
 
 # All endpoints will be exposed under the same domain, you can set a base domain to be used for all endpoints. 
 endpointsBaseDomain: ""
+
+# Gateway API Configuration
+# When useGatewayAPI is true, HTTPRoute resources will be created instead of Ingress resources
+# This requires a Gateway to be deployed separately in the cluster
+useGatewayAPI: false
+# Gateway configuration for HTTPRoute resources
+gateway:
+  # Name of the Gateway resource
+  name: ""
+  # Namespace of the Gateway resource 
+  namespace: ""
+  # Array of listener names to attach HTTPRoute to (e.g., ["https-listener", "http-listener"])
+  listeners: []
 
 ## Ingress Specs
 # Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:

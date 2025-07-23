@@ -1,4 +1,5 @@
 {{- if eq .Values.blch.nodeType "sentry" }}
+{{- if .Values.cosmosExporter.enabled }}
 {{- range $i := until (int .Values.replicas) }}
 ---
 apiVersion: apps/v1
@@ -93,5 +94,6 @@ spec:
       {{- if $.Values.priorityClassName }}
       priorityClassName: {{ $.Values.priorityClassName }}
       {{- end }}
+{{- end }}
 {{- end }}
 {{- end }} 
