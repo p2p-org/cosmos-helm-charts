@@ -6,7 +6,7 @@ port: &appPort 9100
 image:
   repository: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: v2.1.1
+  tag: v2.2.0
 
 env: []
 
@@ -71,7 +71,7 @@ config:
       upgrade:
         enabled: true
         interval: 30
-  
+
     mezo:
       poa:
         enabled: false
@@ -105,7 +105,7 @@ config:
       validator:
         enabled: false
         interval: 30
-        
+
 
 livenessProbe:
   tcpSocket:
