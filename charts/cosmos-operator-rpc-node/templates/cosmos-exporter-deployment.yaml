@@ -2,6 +2,46 @@
 {{- if .Values.cosmosExporter.enabled }}
 {{- range $i := until (int .Values.replicas) }}
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-cosmos-exporter-config-{{ $i }}
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: cosmos-exporter
+data:
+  config.yaml: |
+    general:
+      network: {{ if $.Values.cosmosExporter.network }}{{ $.Values.cosmosExporter.network }}{{ else }}{{ $.Values.blch.protocol }}-{{ $.Values.blch.network }}{{ end }}
+      chain_id: cometbft
+      mode: node
+      metrics:
+        address: 0.0.0.0
+        port: 9100
+        path: /metrics
+      alerting:
+        validators: {{ $.Values.cosmosExporter.alertingValidators }}
+      nodes:
+        rpc:
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-sentry-{{ $i }}:26657
+            healthEndpoint: /health
+        lcd:
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-sentry-{{ $i }}:1317
+            healthEndpoint: /cosmos/base/node/v1beta1/status
+    node:
+      client: test
+      tendermint:
+        nodeInfo:
+          enabled: true
+          interval: 30
+      cometbft:
+        status:
+          enabled: true
+          interval: 30
+    network: {{ include "cosmos-operator-rpc-node.networkConfig" $ | nindent 6 }}             
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,26 +78,20 @@ spec:
               name: metrics
               protocol: TCP
           env:
-            - name: MODE
-              value: Node
-            - name: BLOCKCHAIN
-              value: Tendermint
-            - name: NODE_RPC_ENDPOINT
-              value: http://{{ $.Release.Name }}-sentry-{{ $i }}:26657
-            - name: NODE_REST_ENDPOINT
-              value: http://{{ $.Release.Name }}-sentry-{{ $i }}:1317
-            - name: NODE_RPC_GRPC_PORT
-              value: "9090"
             - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['app.kubernetes.io/instance']
-            - name: NETWORK
-              value: {{ if $.Values.cosmosExporter.network }}{{ $.Values.cosmosExporter.network | quote }}{{ else }}"{{ $.Values.blch.protocol }}-{{ $.Values.blch.network }}"{{ end }}
+              value: {{ $.Release.Name }}-{{ $i }}
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
           {{- if $.Values.resources }}
           resources:
             {{ toYaml $.Values.resources | nindent 12 }}
           {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $.Release.Name }}-cosmos-exporter-config-{{ $i }}
       {{- if $.Values.nodeSelectorLabel }}
       nodeSelector:
         {{ toYaml $.Values.nodeSelectorLabel | nindent 8 }}

@@ -27,6 +27,26 @@ rollingUpdateEnabled: false
 #   tag: 
 #   # Optional: Override the network name for the cosmos-exporter. If not set, defaults to "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
 #   network: ""
+#   # Optional: Alerting validators list for cosmos-exporter
+#   alertingValidators: []
+#   # Optional: Network configuration overrides for cosmos-exporter
+#   # This will be merged with defaults, so you only need to specify what you want to change
+#   networkConfig:
+#     # Example: Enable bank module and add addresses
+#     # tendermint:
+#     #   bank:
+#     #     enabled: true
+#     #     addresses:
+#     #       - "cosmos1..."
+#     #       - "cosmos2..."
+#     # Example: Disable staking module
+#     # tendermint:
+#     #   staking:
+#     #     enabled: false
+#     # Example: Change interval for cometbft validators
+#     # cometbft:
+#     #   validators:
+#     #     interval: 60
 
 # resources: {}
 
