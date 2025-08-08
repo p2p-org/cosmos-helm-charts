@@ -10,6 +10,8 @@ storage: ""
 storageClassName: ""
 # Key to be used for node affinity
 nodeSelectorKey: ""
+# [Optional] Tolerations for the pod
+tolerations: []
 # [Optional] Additional matches for node affinity
 # affinityAdditionalMatches: {}
 # [Optional] Label to be used for node selector

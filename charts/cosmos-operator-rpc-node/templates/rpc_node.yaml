@@ -118,6 +118,10 @@ spec:
     nodeSelector:
       {{ toYaml .Values.nodeSelectorLabel | nindent 6 }}
     {{ end }}
+    {{- if .Values.tolerations }}
+    tolerations:
+      {{ toYaml .Values.tolerations | nindent 6 }}
+    {{- end }}
     {{ if .Values.nodeSelectorKey }}
     affinity:
     {{- if .Values.podAntiAffinityPerNode }}
