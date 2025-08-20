@@ -4,6 +4,13 @@ metadata:
   name: {{ include "cosmos-exporter.name"  . }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
+    {{- with .Values.metadata.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if .Values.metadata.annotations }}
+  annotations:
+    {{- toYaml .Values.metadata.annotations | nindent 4 }}
+  {{- end }}
 spec:
   replicas: 1
   strategy:
