@@ -117,3 +117,6 @@ data:
         validator:
           enabled: {{ .Values.config.network.coredao.validator.enabled }}
           interval: {{ .Values.config.network.coredao.validator.interval }}
+        staking:
+          enabled: {{ .Values.config.network.coredao.staking.enabled }}
+          interval: {{ .Values.config.network.coredao.staking.interval }}
