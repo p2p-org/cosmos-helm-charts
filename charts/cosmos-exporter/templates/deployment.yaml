@@ -29,6 +29,15 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
+            {{- if .Values.secret.envFrom }}
+            {{- range $key, $value := .Values.secret.envFrom }}
+            - name: {{ $value.envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cosmos-exporter.fullname" $ }}-secret
+                  key: {{ $value.secretKey }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.port }}
@@ -37,6 +46,10 @@ spec:
             - name: config
               mountPath: /config.yaml
               subPath: config.yaml
+            {{- if .Values.secret.mount }}
+            - name: secret
+              mountPath: {{ .Values.secret.mount.path }}
+            {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -63,3 +76,8 @@ spec:
         - name: config
           configMap:
             name: {{ include "cosmos-exporter.fullname" . }}-config
+        {{- if .Values.secret.mount }}
+        - name: secret
+          secret:
+            secretName: {{ include "cosmos-exporter.fullname" . }}-secret
+        {{- end }}
