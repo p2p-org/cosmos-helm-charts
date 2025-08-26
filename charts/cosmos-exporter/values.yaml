@@ -14,7 +14,7 @@ metadata:
   annotations: {}
   labels: {}
 
-# External Secrets configuration
+# External Secrets configuration 
 externalSecrets: []
 # - name:
 #   refreshInterval: 1h
