@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cosmos-exporter.name"  . }}
+  name: {{ include "cosmos-exporter.fullname"  . }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
     {{- with .Values.metadata.labels }}
@@ -24,7 +24,7 @@ spec:
         {{- include "cosmos-exporter.labels" . | nindent 8 }}
     spec:
       containers:
-        - name: {{ include "cosmos-exporter.name"  . }}
+        - name: {{ include "cosmos-exporter.fullname"  . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
