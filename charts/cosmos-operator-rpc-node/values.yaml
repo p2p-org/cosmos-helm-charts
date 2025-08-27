@@ -10,6 +10,8 @@ storage: ""
 storageClassName: ""
 # Key to be used for node affinity
 nodeSelectorKey: ""
+# [Optional] Tolerations for the pod
+tolerations: []
 # [Optional] Additional matches for node affinity
 # affinityAdditionalMatches: {}
 # [Optional] Label to be used for node selector
@@ -19,6 +21,34 @@ podAntiAffinityPerNode: true
 volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
+
+# For sentry nodes only
+# cosmosExporter:
+#   enabled: false
+#   image: 
+#   tag: 
+#   # Optional: Override the network name for the cosmos-exporter. If not set, defaults to "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
+#   network: ""
+#   # Optional: Alerting validators list for cosmos-exporter
+#   alertingValidators: []
+#   # Optional: Network configuration overrides for cosmos-exporter
+#   # This will be merged with defaults, so you only need to specify what you want to change
+#   networkConfig:
+#     # Example: Enable bank module and add addresses
+#     # tendermint:
+#     #   bank:
+#     #     enabled: true
+#     #     addresses:
+#     #       - "cosmos1..."
+#     #       - "cosmos2..."
+#     # Example: Disable staking module
+#     # tendermint:
+#     #   staking:
+#     #     enabled: false
+#     # Example: Change interval for cometbft validators
+#     # cometbft:
+#     #   validators:
+#     #     interval: 60
 
 # resources: {}
 
@@ -30,12 +60,17 @@ rollingUpdateEnabled: false
 # cosmosNodeAnnotations: {}
 # priorityClassName
 
+# Common labels to be applied to all resources
+# commonLabels:
+#   team: "cosmos"
+#   environment: "production"
+
 service:
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
 # Optional additional configuration for the services
+# maxP2PExternalAddresses: 1
 # additionalServiceConfig:
-#   maxP2PExternalAddresses: 1
 #   p2pTemplate:
 #     metadata:
 #       labels:
@@ -74,6 +109,11 @@ blch:
       indexer = "kv"
   # additionalStartArgs: ""
   # homeDir: ""
+
+# RBAC for the cosmos-operator to manage the RPC node, use when running the operator in namespace-scoped mode, otherwise set to false.
+cosmosOperatorRBAC:
+  enabled: false
+  namespace: "cosmos-operator-system"
 
   # Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
   # pruning:
@@ -114,6 +154,19 @@ basicAuth:
 
 # All endpoints will be exposed under the same domain, you can set a base domain to be used for all endpoints. 
 endpointsBaseDomain: ""
+
+# Gateway API Configuration
+# When useGatewayAPI is true, HTTPRoute resources will be created instead of Ingress resources
+# This requires a Gateway to be deployed separately in the cluster
+useGatewayAPI: false
+# Gateway configuration for HTTPRoute resources
+gateway:
+  # Name of the Gateway resource
+  name: ""
+  # Namespace of the Gateway resource 
+  namespace: ""
+  # Array of listener names to attach HTTPRoute to (e.g., ["https-listener", "http-listener"])
+  listeners: []
 
 ## Ingress Specs
 # Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:

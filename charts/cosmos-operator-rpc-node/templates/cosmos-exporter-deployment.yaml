@@ -1,0 +1,137 @@
+{{- if eq .Values.blch.nodeType "sentry" }}
+{{- if .Values.cosmosExporter.enabled }}
+{{- range $i := until (int .Values.replicas) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-cosmos-exporter-config-{{ $i }}
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: cosmos-exporter
+data:
+  config.yaml: |
+    general:
+      network: {{ if $.Values.cosmosExporter.network }}{{ $.Values.cosmosExporter.network }}{{ else }}{{ $.Values.blch.protocol }}-{{ $.Values.blch.network }}{{ end }}
+      chain_id: cometbft
+      mode: node
+      metrics:
+        address: 0.0.0.0
+        port: 9100
+        path: /metrics
+      alerting:
+        validators: {{ $.Values.cosmosExporter.alertingValidators }}
+      nodes:
+        rpc:
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-sentry-{{ $i }}:26657
+            healthEndpoint: /health
+        lcd:
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-sentry-{{ $i }}:1317
+            healthEndpoint: /cosmos/base/node/v1beta1/status
+    node:
+      client: test
+      tendermint:
+        nodeInfo:
+          enabled: true
+          interval: 30
+      cometbft:
+        status:
+          enabled: true
+          interval: 30
+    network: {{ include "cosmos-operator-rpc-node.networkConfig" $ | nindent 6 }}             
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-cosmos-exporter-{{ $i }}
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: cosmos-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: cosmos-exporter
+      app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+  template:
+    metadata:
+      labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: cosmos-exporter
+        app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100" 
+        prometheus.io/path: "/metrics"
+    spec:
+      imagePullSecrets:
+        - name: {{ $.Values.imagePullSecrets }}
+      containers:
+        - name: cosmos-exporter
+          image: {{ $.Values.cosmosExporter.image }}:{{ $.Values.cosmosExporter.tag }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9100
+              name: metrics
+              protocol: TCP
+          env:
+            - name: NODE_NAME
+              value: {{ $.Release.Name }}-{{ $i }}
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+          {{- if $.Values.resources }}
+          resources:
+            {{ toYaml $.Values.resources | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $.Release.Name }}-cosmos-exporter-config-{{ $i }}
+      {{- if $.Values.nodeSelectorLabel }}
+      nodeSelector:
+        {{ toYaml $.Values.nodeSelectorLabel | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.tolerations }}
+      tolerations:
+        {{ toYaml $.Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.nodeSelectorKey }}
+      affinity:
+        {{- if $.Values.podAntiAffinityPerNode }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ $.Release.Name }}-cosmos-exporter-{{ $i }}
+            topologyKey: "kubernetes.io/hostname"
+        {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              {{- if $.Values.affinityAdditionalMatches }}
+              {{ toYaml $.Values.affinityAdditionalMatches | nindent 14 }}
+              {{- end }}
+              - key: blch
+                operator: In
+                values:
+                - "true"
+              - key: {{ $.Values.nodeSelectorKey }}
+                operator: In
+                values:
+                - "true"
+      {{- end }}
+      {{- if $.Values.priorityClassName }}
+      priorityClassName: {{ $.Values.priorityClassName }}
+      {{- end }}
+{{- end }}
+{{- end }}
+{{- end }} 

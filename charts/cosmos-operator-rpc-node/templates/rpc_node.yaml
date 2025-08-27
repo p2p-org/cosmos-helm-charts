@@ -11,8 +11,14 @@ metadata:
   annotations:
     {{- toYaml .Values.cosmosNodeAnnotations | nindent 4 }}
   {{ end }}
-
 spec:
+  {{- if .Values.commonLabels }}
+  globalLabels:
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+  {{- end }}
+  {{- if eq .Values.blch.nodeType "sentry" }}
+  type: "Sentry"
+  {{- end }}
   {{ if and (eq (int .Values.replicas) 1) .Values.rollingUpdateEnabled }}
   # Only one replica will be running, the second replica will be disabled and used only during rolling updates
   replicas: 2
@@ -89,15 +95,16 @@ spec:
       {{ end }}
     {{ end }}
   podTemplate:
-    {{- if .Values.cosmosNodeLabels }}
+    {{- if or .Values.cosmosNodeLabels .Values.cosmosNodeAnnotations }}
     metadata:
+      {{- if .Values.cosmosNodeLabels }}
       labels:
         {{- toYaml .Values.cosmosNodeLabels | nindent 8 }}
-    {{- end }}
-    {{- if .Values.cosmosNodeAnnotations }}
-    metadata:
+      {{- end }}
+      {{- if .Values.cosmosNodeAnnotations }}
       annotations:
         {{- toYaml .Values.cosmosNodeAnnotations | nindent 8 }}
+      {{- end }}
     {{- end }}
     imagePullPolicy: "Always"
     imagePullSecrets:
@@ -111,6 +118,10 @@ spec:
     nodeSelector:
       {{ toYaml .Values.nodeSelectorLabel | nindent 6 }}
     {{ end }}
+    {{- if .Values.tolerations }}
+    tolerations:
+      {{ toYaml .Values.tolerations | nindent 6 }}
+    {{- end }}
     {{ if .Values.nodeSelectorKey }}
     affinity:
     {{- if .Values.podAntiAffinityPerNode }}
@@ -147,13 +158,15 @@ spec:
         {{ toYaml $value | nindent 8 }}
       {{- end }}
     {{- end }}
+    
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}
     {{ end }}
   service:
-  {{ if .Values.additionalServiceConfig }}
-    {{ toYaml .Values.additionalServiceConfig | nindent 6 }}
-  {{ end }}
+    {{- if .Values.additionalServiceConfig }}
+    {{- toYaml .Values.additionalServiceConfig | nindent 4 }}
+    {{- end }}
+    maxP2PExternalAddresses: {{ .Values.maxP2PExternalAddresses | default .Values.replicas }}
     {{ if .Values.service.publishSvcDuringSync }}
     rpcTemplate:
       publishNotReadyAddresses: true

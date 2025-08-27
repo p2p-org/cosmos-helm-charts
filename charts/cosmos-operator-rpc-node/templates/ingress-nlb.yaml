@@ -1,3 +1,4 @@
+{{- if not .Values.useGatewayAPI }}
 {{- range $key, $val := .Values.endpoints }}
 {{- if $val.enabled }}
 {{- $name := printf "%s-%s" $.Release.Name $key }}
@@ -8,6 +9,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ default $name $val.ingressName }}-nlb
+  labels:
+{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
   annotations:
     {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}
     {{- if $.Values.basicAuth.enabled }}
@@ -44,5 +47,6 @@ spec:
   - hosts:
     - {{ default $host $val.tlsHost | quote }}
     secretName: {{ default $tlsSecretName $val.tlsSecretName }}
+{{- end }}
 {{- end }}
 {{- end }}
