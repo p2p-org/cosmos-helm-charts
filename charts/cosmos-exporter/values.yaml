@@ -14,20 +14,21 @@ metadata:
   annotations: {}
   labels: {}
 
-# Secret configuration 
-secret:
-  create: false
-  # Secret data to be included
-  data: {}
-    # api-key: "your-api-key"
-    # auth-token: "your-auth-token"
-  # Mount the secret as a volume
-  mount:
-    path: /etc/secrets
-  # Use specific values from the secret as environment variables
-  envFrom: []
-    # - secretKey: coredao-api-key
-    #   envName: COREDAO_VALIDATOR_API_KEY
+# External Secrets configuration 
+externalSecrets: []
+# - name:
+#   refreshInterval: 1h
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name:
+#   target:
+#     name:
+#     creationPolicy: Owner
+#   data:
+#   - secretKey:
+#     remoteRef:
+#       key:
+#       property:
 
 config:
   general:
