@@ -6,35 +6,134 @@ port: &appPort 9100
 image:
   repository: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: v1.4.0
+  tag: v2.3.0
 
-env:
-  - name: PROMETHEUS_IP
-    value: 0.0.0.0
-  - name: PROMETHEUS_PORT
-    value: *appPort
-  - name: BLOCK_WINDOW
-    value: 500
-  - name: BLOCKCHAIN
-    value: ""
-  - name: REST_ENDPOINTS
-    value: ""
-  - name: RPC_ENDPOINTS
-    value: ""
-  - name: MODE
-    value: Network
-  - name: NETWORK
-    value: ""
+env: []
 
+metadata:
+  annotations: {}
+  labels: {}
 
-envOverride: []
-  # - name: BLOCKCHAIN
-  #   value: Tendermint
-  # - name: RPC_ENDPOINTS
-  #   value: https://rpc.testnet.mezo.tm.p2p.world,/status
-  # - name: REST_ENDPOINTS
-  #   value: https://api.testnet.mezo.tm.p2p.world,/cosmos/base/node/v1beta1/status
+# External Secrets configuration 
+externalSecrets: []
+# - name:
+#   refreshInterval: 1h
+#   secretStoreRef:
+#     kind: ClusterSecretStore
+#     name:
+#   target:
+#     name:
+#     creationPolicy: Owner
+#   data:
+#   - secretKey:
+#     remoteRef:
+#       key:
+#       property:
 
+config:
+  general:
+    network:
+    chain_id: cometbft
+    mode: network
+    metrics:
+      address: 0.0.0.0
+      port: *appPort
+      path: /metrics
+    alerting:
+      validators: []
+
+  nodes:
+    rpc: []
+    lcd: []
+
+  node:
+    client: ""
+    tendermint:
+      nodeInfo:
+        enabled: true
+        interval: 30
+    cometbft:
+      status:
+        enabled: true
+        interval: 30
+
+  network:
+    cometbft:
+      validators:
+        enabled: true
+        interval: 30
+      block:
+        enabled: true
+        interval: 30
+        window: 500
+        tx:
+          enabled: true
+        uptime:
+          persistence: true
+
+    tendermint:
+      bank:
+        addresses: []
+        enabled: false
+        interval: 30
+      distribution:
+        enabled: true
+        interval: 30
+      gov:
+        enabled: true
+        interval: 30
+      staking:
+        enabled: true
+        interval: 30
+      slashing:
+        enabled: true
+        interval: 30
+      upgrade:
+        enabled: true
+        interval: 30
+
+    mezo:
+      poa:
+        enabled: false
+        interval: 30
+
+    babylon:
+      bls:
+        enabled: false
+        interval: 30
+
+    lombard:
+      ledger:
+        addresses: []
+        enabled: false
+        interval: 30
+
+    namada:
+      account:
+        addresses: []
+        enabled: false
+        interval: 30
+      pos:
+        enabled: false
+        interval: 30
+
+    coredao:
+      block:
+        enabled: false
+        interval: 30
+        window: 500
+      validator:
+        enabled: false
+        interval: 30
+        api:
+          enabled: false
+          url: ""
+          api_key: ""
+          cache_duration_seconds: 300
+          
+      staking:
+        enabled: false
+        interval: 30
 
 livenessProbe:
   tcpSocket:
@@ -58,41 +157,11 @@ resources:
   limits:
     memory: "200Mi"
 
-imagePullSecrets:
-- name: github-secret
+imagePullSecrets: []
 
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: exporters
-          operator: In
-          values:
-          - "true"
+affinity: {}
 
 
 tolerations: []
-
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
-#
-# If you want to use Vault secrets see: https://github.com/p2p-org/iaas-platform/blob/main/docs/vault/index.md
-#
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: false
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  #
-  name: ""
-
-# This section builds the Vault secrets cluster role
-vaultClusterRole:
-  # If the role must be created
-  create: false
 
 
