@@ -125,6 +125,12 @@ config:
       validator:
         enabled: false
         interval: 30
+        api:
+          enabled: false
+          url: ""
+          api_key: ""
+          cache_duration_seconds: 300
+          
       staking:
         enabled: false
         interval: 30
