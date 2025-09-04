@@ -107,6 +107,9 @@ blch:
     overrides: |-
       [tx_index]
       indexer = "kv"
+    # Enable DNS name for P2P External Service
+    # This will set the externalAddress to the DNS name and add an annotation to the external service for external-dns to manage the DNS record
+    p2pDNSNameEnabled: false
   # additionalStartArgs: ""
   # homeDir: ""
 

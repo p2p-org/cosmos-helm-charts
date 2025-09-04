@@ -171,10 +171,20 @@ spec:
     rpcTemplate:
       publishNotReadyAddresses: true
     {{ end }}
-  {{ if and (eq (int .Values.replicas) 1) .Values.rollingUpdateEnabled }}
+  {{ if or .Values.blch.config.p2pDNSNameEnabled .Values.rollingUpdateEnabled }}
   instanceOverrides:
+    {{ if .Values.blch.config.p2pDNSNameEnabled }}
+    {{- range $i := until (int .Values.replicas) }}
+    {{ $.Release.Name }}-{{ $i }}:
+      externalAddress: {{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}:26656
+      p2pExternalServiceAnnotations:
+        external-dns.alpha.kubernetes.io/hostname: {{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}
+    {{- end }}
+    {{ end }}
+    {{ if .Values.rollingUpdateEnabled }}
     {{ .Release.Name }}-1:
       disable: All
+    {{ end }}
   {{ end }}
   volumeClaimTemplate:
     resources:
