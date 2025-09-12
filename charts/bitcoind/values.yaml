@@ -14,7 +14,7 @@ image:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "nginx-nlb"
   certManager:
     issuer: "letsencrypt-prod"
   
