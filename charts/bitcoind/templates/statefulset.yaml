@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "bitcoind.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "bitcoind.name" . }}
+    chart: {{ template "bitcoind.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  serviceName: {{ include "bitcoind.name" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "bitcoind.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "bitcoind.name" . }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "bitcoin-stack"
+        vault.hashicorp.com/agent-inject-secret-bitcoin: "secret/data/bitcoin-stack"
+        vault.hashicorp.com/agent-inject-template-bitcoin: |
+          {{`{{- with secret "secret/data/bitcoin-stack" -}}
+          rpcuser={{ .Data.data.rpcuser }}
+          rpcpassword={{ .Data.data.rpcpassword }}
+          {{- end -}}`}}
+    spec:
+      serviceAccountName: vault-auth-bitcoin
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: {{ .Chart.Name }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [
+                  # Gracefully shutdown bitcoind
+                  "/usr/local/bin/bitcoin-cli", "stop"
+                ]
+          {{ if ((.Values.image).digest) }}
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+          {{ else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{ end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          resources: 
+          {{ toYaml .Values.resources | nindent 12 }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cp /vault/secrets/bitcoin /root/.bitcoin/bitcoin.conf
+              exec bitcoind -printtoconsole \
+                -signet=1 \
+                -server=1 \
+                -rpcallowip=0.0.0.0/0 \
+                -rpcbind=0.0.0.0 \
+                -rpcport=38332
+          env:
+            - name: CONFIGMAP_SUM
+              value: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+            - name: PRINTTOCONSOLE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: printtoconsole
+            - name: SIGNET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: signet
+            - name: SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: server
+            - name: RPCALLOWIP
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: rpcallowip
+            - name: RPCBIND
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: rpcbind
+            - name: RPCPORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: rpcport
+            - name: DISABLEWALLET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: disablewallet
+            - name: PRUNE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "bitcoind.name" . }}
+                  key: prune
+            - name: BITCOIN_DATA
+              value: "/bitcoin/data"
+          ports:
+            - name: rpc
+              containerPort: 38332
+            - name: p2p
+              containerPort: 38333
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /bitcoin/data
+  volumeClaimTemplates:
+  - metadata:
+      name: persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: {{ .Values.persistence.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size }}

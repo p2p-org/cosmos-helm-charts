@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ include "bitcoind.name" . }}
+  labels:
+    app: {{ template "bitcoind.name" . }}
+    chart: {{ template "bitcoind.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }} 
+data: 
+  printtoconsole: "{{ .Values.configuration.printtoconsole | default 1 }}"
+  signet: "{{ .Values.configuration.signet | default 1 }}"
+  server: "{{ .Values.configuration.server | default 1 }}"
+  rpcallowip: "{{ .Values.configuration.rpcallowip }}"
+  rpcbind: "{{ .Values.configuration.rpcbind }}"
+  rpcport: "{{ .Values.configuration.rpcport }}"
+  disablewallet: "{{ .Values.configuration.disablewallet | default 1 }}"
+  prune: "{{ .Values.configuration.prune | default 0 }}"

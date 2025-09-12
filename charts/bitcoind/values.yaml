@@ -1,0 +1,34 @@
+namespace: bitcoind
+# Set the docker image version and tag
+image:
+  repository: bitcoin/bitcoin
+  tag: 28
+  digest: sha256:40c4d17f6cf0b560a61d33a1d97ccb8b6d407db29e614d2c598cb9b2483a4383
+  pullPolicy: Always
+
+# bitcoin.conf configuration file
+configuration:
+  printtoconsole: 1 #print to console 
+  signet: 1 #can be only signet 1
+  server: 1 #server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
+  rpcallowip: 0.0.0.0/0 #use the cluster private ip range to further restrict connection attempts
+  rpcbind: "0.0.0.0" #rpc bind address
+  rpcport: "38332" #signet rpc port
+  disablewallet: 1 #disable wallet
+  prune: 12000 #Reduce storage requirements by enabling pruning (deleting) of old blocks. >=12000 = target to stay under in MiB.
+  passwordLength: 50 #the rpc password length
+
+# persistent volume settings
+persistence:
+  accessMode: ReadWriteOnce
+  size: 14G
+  storageClass: local-path
+
+# resources that the pod is allowed to consume
+resources:
+  requests:
+    cpu: 250m
+    memory: 1G
+  limits:
+    cpu: 250m
+    memory: 1G

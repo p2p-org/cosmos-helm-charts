@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bitcoind.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "bitcoind.name" . }}
+    chart: {{ template "bitcoind.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+    - name: rpc
+      port: 38332
+      targetPort: rpc
+    - name: p2p
+      port: 38333
+      targetPort: p2p
+  selector:
+    app: {{ include "bitcoind.name" . }}
