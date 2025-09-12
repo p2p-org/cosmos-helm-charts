@@ -16,6 +16,7 @@ This chart deploys a complete RPC node including:
   - Latest block height compared to a given public RPC endpoint
   - Endpoint monitoring for the deployed RPC endpoint
 - Optional rcosmos-exporter deployment 
+- Optional Use DNS name for P2P external-address
 ## Prerequisites
 
 - Helm 3.2.0+
@@ -24,6 +25,7 @@ This chart deploys a complete RPC node including:
 - Cert-manager (optional, for TLS)
 - Prometheus blackbox exporter (optional, for monitoring)
 - Prometheus json exporter (optional, for monitoring)
+- external-dns (optional, for external-address dns name)
 
 ## Installation
 
