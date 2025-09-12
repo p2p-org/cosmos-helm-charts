@@ -1,124 +1,112 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "bitcoind.name" . }}
-  namespace: {{ .Values.namespace }}
+  name: {{ include "bitcoind.fullname" . }}
   labels:
-    app: {{ template "bitcoind.name" . }}
-    chart: {{ template "bitcoind.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "bitcoind.labels" . | nindent 4 }}
 spec:
-  serviceName: {{ include "bitcoind.name" . }}
+  serviceName: {{ include "bitcoind.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
-      app: {{ include "bitcoind.name" . }}
+      {{- include "bitcoind.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ include "bitcoind.name" . }}
+        {{- include "bitcoind.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
       annotations:
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/role: "bitcoin-stack"
-        vault.hashicorp.com/agent-inject-secret-bitcoin: "secret/data/bitcoin-stack"
-        vault.hashicorp.com/agent-inject-template-bitcoin: |
-          {{`{{- with secret "secret/data/bitcoin-stack" -}}
-          rpcuser={{ .Data.data.rpcuser }}
-          rpcpassword={{ .Data.data.rpcpassword }}
-          {{- end -}}`}}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
-      serviceAccountName: vault-auth-bitcoin
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          lifecycle:
-            preStop:
-              exec:
-                command: [
-                  # Gracefully shutdown bitcoind
-                  "/usr/local/bin/bitcoin-cli", "stop"
-                ]
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           {{ if ((.Values.image).digest) }}
           image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
           {{ else }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{ end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          resources: 
-          {{ toYaml .Values.resources | nindent 12 }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              cp /vault/secrets/bitcoin /root/.bitcoin/bitcoin.conf
-              exec bitcoind -printtoconsole \
-                -signet=1 \
-                -server=1 \
-                -rpcallowip=0.0.0.0/0 \
-                -rpcbind=0.0.0.0 \
-                -rpcport=38332
-          env:
-            - name: CONFIGMAP_SUM
-              value: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-            - name: PRINTTOCONSOLE
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: printtoconsole
-            - name: SIGNET
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: signet
-            - name: SERVER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: server
-            - name: RPCALLOWIP
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: rpcallowip
-            - name: RPCBIND
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: rpcbind
-            - name: RPCPORT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: rpcport
-            - name: DISABLEWALLET
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: disablewallet
-            - name: PRUNE
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bitcoind.name" . }}
-                  key: prune
-            - name: BITCOIN_DATA
-              value: "/bitcoin/data"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                # Gracefully shutdown bitcoind
+                  - "/usr/local/bin/bitcoin-cli"
+                  - "-conf=/config/bitcoin.conf"
+                  - "stop"
           ports:
             - name: rpc
-              containerPort: 38332
+              containerPort: {{ if eq .Values.network.type "signet" }}{{ .Values.network.ports.rpc }}{{ else }}{{ .Values.service.rpcPort }}{{ end }}
+              protocol: TCP
             - name: p2p
-              containerPort: 38333
+              containerPort: {{ if eq .Values.network.type "signet" }}{{ .Values.network.ports.p2p }}{{ else }}{{ .Values.service.p2pPort }}{{ end }}
+              protocol: TCP
+          env:
+            - name: BITCOIN_DATA
+              value: "/bitcoin/data"
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          args:
+            - -conf=/config/bitcoin.conf
+            {{- with .Values.extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           volumeMounts:
-            - name: persistent-storage
+            - name: data
               mountPath: /bitcoin/data
+            - name: config
+              mountPath: /config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "bitcoind.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
-  - metadata:
-      name: persistent-storage
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: {{ .Values.persistence.storageClass }}
-      resources:
-        requests:
-          storage: {{ .Values.persistence.size }}
+    - metadata:
+        name: data
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+  {{- end }}

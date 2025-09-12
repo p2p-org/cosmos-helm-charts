@@ -1,34 +1,116 @@
-namespace: bitcoind
-# Set the docker image version and tag
+nameOverride: ""
+fullnameOverride: ""
+
+auth:
+  enabled: true
+  username: "bitcoin"
+  password: "password123"  # this will be changed
+
 image:
   repository: bitcoin/bitcoin
+  pullPolicy: IfNotPresent
   tag: 28
   digest: sha256:40c4d17f6cf0b560a61d33a1d97ccb8b6d407db29e614d2c598cb9b2483a4383
-  pullPolicy: Always
 
-# bitcoin.conf configuration file
-configuration:
-  printtoconsole: 1 #print to console 
-  signet: 1 #can be only signet 1
-  server: 1 #server=1 tells Bitcoin-Qt and bitcoind to accept JSON-RPC commands
-  rpcallowip: 0.0.0.0/0 #use the cluster private ip range to further restrict connection attempts
-  rpcbind: "0.0.0.0" #rpc bind address
-  rpcport: "38332" #signet rpc port
-  disablewallet: 1 #disable wallet
-  prune: 12000 #Reduce storage requirements by enabling pruning (deleting) of old blocks. >=12000 = target to stay under in MiB.
-  passwordLength: 50 #the rpc password length
+ingress:
+  enabled: true
+  className: "nginx"
+  certManager:
+    issuer: "letsencrypt-prod"
+  
+  # Ingress annotations for proper SSL and backend configuration
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_set_header Authorization $http_authorization;
+      proxy_pass_header Authorization;
+    
+  hosts:
+    - host: "rpc.signet.tm.p2p.org"  # RPC endpoint domain
+      paths:
+        - path: /
+          pathType: Prefix
+  
+  tls:
+    - secretName: bitcoin-rpc-tls
+      hosts:
+        - "rpc.signet.tm.p2p.org"
 
-# persistent volume settings
-persistence:
-  accessMode: ReadWriteOnce
-  size: 14G
-  storageClass: local-path
+service:
+  type: ClusterIP
+  # Service ports will match the network-specific ports
+  rpcPort: 38332  # Match signet RPC port
+  p2pPort: 38333  # Match signet P2P port
 
-# resources that the pod is allowed to consume
+# Network configuration
+network:
+  # Which network to use: mainnet, testnet, signet, or regtest
+  type: "signet"
+  # Network-specific settings
+  signet:
+    enabled: true
+    # Optional challenge to connect to a specific signet
+    challenge: ""
+  # Network settings
+  dnsseed: true
+  upnp: false
+  # Network ports
+  ports:
+    rpc: 38332  # Signet RPC port
+    p2p: 38333  # Signet P2P port
+
+# Resource configuration
 resources:
   requests:
-    cpu: 250m
-    memory: 1G
+    cpu: "1"
+    memory: "2Gi"
   limits:
-    cpu: 250m
-    memory: 1G
+    cpu: "2"
+    memory: "4Gi"
+
+# Storage configuration
+persistence:
+  enabled: true
+  size: "100Gi"
+  # Using OCI Block Volume as storage class with WaitForFirstConsumer binding mode
+  storageClass: "oci-bv"
+  annotations: {}
+  # Use ReadWriteOnce since we're running a single instance
+  accessModes:
+    - ReadWriteOnce
+
+# Bitcoin node configuration
+bitcoin:
+  # Additional custom configuration (optional)
+  extraConfig: ""
+
+# Optional pruning configuration
+pruning:
+  enabled: false
+  level: 2000  # Prune everything except last 2000 blocks
+
+imagePullSecrets: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Security Context configurations
+# podSecurityContext:
+#   fsGroup: 101
+#   runAsUser: 101
+#   runAsGroup: 101
+
+# securityContext:
+#   runAsNonRoot: true
+#   runAsUser: 101
+#   runAsGroup: 101
+#   allowPrivilegeEscalation: false
