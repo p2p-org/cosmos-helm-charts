@@ -135,6 +135,13 @@ config:
         enabled: false
         interval: 30
 
+    sei:
+      validators:
+        enabled: false
+        interval: 30
+      block:
+        enabled: false
+        interval: 30
 livenessProbe:
   tcpSocket:
     port: *appPort
