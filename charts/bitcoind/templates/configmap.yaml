@@ -14,9 +14,7 @@ data:
     # Network Selection and Configuration
     {{- if eq .Values.network.type "mainnet" }}
     [main]
-    # RPC settings
-    rpcuser={{ .Values.auth.username }}
-    rpcpassword={{ .Values.auth.password }}
+    # RPC settings (credentials passed via command line arguments)
     rpcbind=0.0.0.0
     rpcallowip=0.0.0.0/0
     rpcallowip=127.0.0.1
@@ -26,9 +24,7 @@ data:
     {{- else if eq .Values.network.type "signet" }}
     signet=1
     [signet]
-    # RPC settings
-    rpcuser={{ .Values.auth.username }}
-    rpcpassword={{ .Values.auth.password }}
+    # RPC settings (credentials passed via command line arguments)
     rpcbind=0.0.0.0
     rpcallowip=0.0.0.0/0
     rpcport={{ .Values.network.ports.rpc | default 38332 }}

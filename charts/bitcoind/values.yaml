@@ -1,10 +1,20 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# Auth configuration
+# Username is hardcoded as "bitcoin" in the chart
+# Only password needs to be configured
 auth:
-  enabled: true
-  username: "bitcoin"
-  password: "password123"  # this will be changed
+  enabled: false  # Enable for dev/testing with hardcoded password
+  password: "password123"  # Used only when externalSecrets.enabled = false
+
+# External Secrets configuration
+# When enabled, this replaces auth.password with password from vault
+externalSecrets:
+  enabled: true  # Set to true for production
+  secretStore: "oci-vault-store"
+  remoteSecretKey: "bitcoin-signet-rpc-password"
+
 
 image:
   repository: bitcoin/bitcoin

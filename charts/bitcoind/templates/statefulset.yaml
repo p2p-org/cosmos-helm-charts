@@ -53,11 +53,22 @@ spec:
           env:
             - name: BITCOIN_DATA
               value: "/bitcoin/data"
+            {{- if or .Values.auth.enabled .Values.externalSecrets.enabled }}
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bitcoind.fullname" . }}-auth
+                  key: rpcpassword
+            {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
           args:
             - -conf=/config/bitcoin.conf
+            {{- if or .Values.auth.enabled .Values.externalSecrets.enabled }}
+            - -rpcuser=bitcoin
+            - -rpcpassword=$(BITCOIN_RPC_PASSWORD)
+            {{- end }}
             {{- with .Values.extraArgs }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
