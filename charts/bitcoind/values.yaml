@@ -6,7 +6,7 @@ fullnameOverride: ""
 # Only password needs to be configured
 auth:
   enabled: false  # Enable for dev/testing with hardcoded password
-  password: "password123"  # Used only when externalSecrets.enabled = false
+  password: ""  # Used only when externalSecrets.enabled = false
 
 # External Secrets configuration
 # When enabled, this replaces auth.password with password from vault
