@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "bitcoind.fullname" . }}
+  labels:
+    {{- include "bitcoind.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "bitcoind.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "bitcoind.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bitcoind.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{ if ((.Values.image).digest) }}
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+          {{ else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{ end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                # Gracefully shutdown bitcoind
+                  - "/usr/local/bin/bitcoin-cli"
+                  - "-conf=/config/bitcoin.conf"
+                  - "stop"
+          ports:
+            - name: rpc
+              containerPort: {{ if eq .Values.network.type "signet" }}{{ .Values.network.ports.rpc }}{{ else }}{{ .Values.service.rpcPort }}{{ end }}
+              protocol: TCP
+            - name: p2p
+              containerPort: {{ if eq .Values.network.type "signet" }}{{ .Values.network.ports.p2p }}{{ else }}{{ .Values.service.p2pPort }}{{ end }}
+              protocol: TCP
+          env:
+            - name: BITCOIN_DATA
+              value: "/bitcoin/data"
+            {{- if or .Values.auth.enabled .Values.externalSecrets.enabled }}
+            - name: BITCOIN_RPC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bitcoind.fullname" . }}-auth
+                  key: rpcpassword
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          args:
+            - -conf=/config/bitcoin.conf
+            {{- if or .Values.auth.enabled .Values.externalSecrets.enabled }}
+            - -rpcuser=bitcoin
+            - -rpcpassword=$(BITCOIN_RPC_PASSWORD)
+            {{- end }}
+            {{- with .Values.extraArgs }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /bitcoin/data
+            - name: config
+              mountPath: /config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "bitcoind.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+  {{- end }}

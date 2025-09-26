@@ -1,0 +1,16 @@
+apiVersion: v2
+appVersion: "28"
+description: Bitcoin node chart
+icon: https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/1024px-Bitcoin.svg.png
+keywords:
+- bitcoin
+- btc
+- helm
+- docker
+maintainers:
+- email: chakrelllah@gmail.com
+  name: Amine Chakrellah
+name: bitcoind
+sources:
+- https://github.com/aminechakr/bitcoin-node-observer
+version: 0.0.1

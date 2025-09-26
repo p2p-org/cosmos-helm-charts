@@ -1,0 +1,126 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Auth configuration
+# Username is hardcoded as "bitcoin" in the chart
+# Only password needs to be configured
+auth:
+  enabled: false  # Enable for dev/testing with hardcoded password
+  password: ""  # Used only when externalSecrets.enabled = false
+
+# External Secrets configuration
+# When enabled, this replaces auth.password with password from vault
+externalSecrets:
+  enabled: true  # Set to true for production
+  secretStore: "oci-vault-store"
+  remoteSecretKey: "bitcoin-signet-rpc-password"
+
+
+image:
+  repository: bitcoin/bitcoin
+  pullPolicy: IfNotPresent
+  tag: 28
+  digest: sha256:40c4d17f6cf0b560a61d33a1d97ccb8b6d407db29e614d2c598cb9b2483a4383
+
+ingress:
+  enabled: true
+  className: "nginx-nlb"
+  certManager:
+    issuer: "letsencrypt-prod"
+  
+  # Ingress annotations for proper SSL and backend configuration
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_set_header Authorization $http_authorization;
+      proxy_pass_header Authorization;
+    
+  hosts:
+    - host: "rpc.signet.tm.p2p.org"  # RPC endpoint domain
+      paths:
+        - path: /
+          pathType: Prefix
+  
+  tls:
+    - secretName: bitcoin-rpc-tls
+      hosts:
+        - "rpc.signet.tm.p2p.org"
+
+service:
+  type: ClusterIP
+  # Service ports will match the network-specific ports
+  rpcPort: 38332  # Match signet RPC port
+  p2pPort: 38333  # Match signet P2P port
+
+# Network configuration
+network:
+  # Which network to use: mainnet, testnet, signet, or regtest
+  type: "signet"
+  # Network-specific settings
+  signet:
+    enabled: true
+    # Optional challenge to connect to a specific signet
+    challenge: ""
+  # Network settings
+  dnsseed: true
+  upnp: false
+  # Network ports
+  ports:
+    rpc: 38332  # Signet RPC port
+    p2p: 38333  # Signet P2P port
+
+# Resource configuration
+resources:
+  requests:
+    cpu: "1"
+    memory: "2Gi"
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+
+# Storage configuration
+persistence:
+  enabled: true
+  size: "100Gi"
+  # Using OCI Block Volume as storage class with WaitForFirstConsumer binding mode
+  storageClass: "oci-bv"
+  annotations: {}
+  # Use ReadWriteOnce since we're running a single instance
+  accessModes:
+    - ReadWriteOnce
+
+# Bitcoin node configuration
+bitcoin:
+  # Additional custom configuration (optional)
+  extraConfig: ""
+
+# Optional pruning configuration
+pruning:
+  enabled: false
+  level: 2000  # Prune everything except last 2000 blocks
+
+imagePullSecrets: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Security Context configurations
+# podSecurityContext:
+#   fsGroup: 101
+#   runAsUser: 101
+#   runAsGroup: 101
+
+# securityContext:
+#   runAsNonRoot: true
+#   runAsUser: 101
+#   runAsGroup: 101
+#   allowPrivilegeEscalation: false
