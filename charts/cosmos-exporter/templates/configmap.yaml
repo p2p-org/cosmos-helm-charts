@@ -125,3 +125,11 @@ data:
         staking:
           enabled: {{ .Values.config.network.coredao.staking.enabled }}
           interval: {{ .Values.config.network.coredao.staking.interval }}
+
+      sei:
+        validators:
+          enabled: {{ .Values.config.network.sei.validators.enabled }}
+          interval: {{ .Values.config.network.sei.validators.interval }}
+        block:
+          enabled: {{ .Values.config.network.sei.block.enabled }}
+          interval: {{ .Values.config.network.sei.block.interval }}
