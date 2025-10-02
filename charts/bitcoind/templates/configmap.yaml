@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bitcoind.fullname" . }}
+  labels:
+    {{- include "bitcoind.labels" . | nindent 4 }}
+data:
+  bitcoin.conf: |
+    # Common Configuration
+    server=1
+    rest=1
+    printtoconsole=1
+
+    # Network Selection and Configuration
+    {{- if eq .Values.network.type "mainnet" }}
+    [main]
+    # RPC settings (credentials passed via command line arguments)
+    rpcbind=0.0.0.0
+    rpcallowip=0.0.0.0/0
+    rpcallowip=127.0.0.1
+    rpcport={{ .Values.network.ports.rpc | default 8332 }}
+    port={{ .Values.network.ports.p2p | default 8333 }}
+    
+    {{- else if eq .Values.network.type "signet" }}
+    signet=1
+    [signet]
+    # RPC settings (credentials passed via command line arguments)
+    rpcbind=0.0.0.0
+    rpcallowip=0.0.0.0/0
+    rpcport={{ .Values.network.ports.rpc | default 38332 }}
+    port={{ .Values.network.ports.p2p | default 38333 }}
+    {{- if .Values.network.signet.challenge }}
+    signetchallenge={{ .Values.network.signet.challenge }}
+    {{- end }}
+    {{- end }}
+    
+    # Additional Custom Configuration
+    {{- if .Values.bitcoin.extraConfig }}
+    {{ .Values.bitcoin.extraConfig | nindent 4 }}
+    {{- end }}
