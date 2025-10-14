@@ -60,6 +60,24 @@ rollingUpdateEnabled: false
 # cosmosNodeAnnotations: {}
 # priorityClassName
 
+# Sidecar container configuration for the CosmosFullNode
+sidecar:
+  enabled: false
+  name: "sidecar"
+  image: "nginx:alpine"
+  imagePullPolicy: "IfNotPresent"
+  command: ["/bin/sh"]
+  args: []
+  port: 8080
+  portName: "sidecar-port"
+  configMap:
+    enabled: false
+    name: "sidecar-config"
+    mountPath: "/etc/sidecar"
+    data: {}
+  env: []
+  envFrom: []
+  resources: {}
 # Common labels to be applied to all resources
 # commonLabels:
 #   team: "cosmos"

@@ -158,7 +158,39 @@ spec:
         {{ toYaml $value | nindent 8 }}
       {{- end }}
     {{- end }}
-    
+    {{- if .Values.sidecar.enabled }}
+    containers:
+      - name: {{ .Values.sidecar.name }}
+        image: {{ .Values.sidecar.image }}
+        command: {{ .Values.sidecar.command }}
+        {{- if .Values.sidecar.args }}
+        args: {{ .Values.sidecar.args }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy }}
+        {{- if .Values.sidecar.resources }}
+        resources:
+          {{ toYaml .Values.sidecar.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.sidecar.port }}
+        ports:
+          - name: {{ .Values.sidecar.portName }}
+            containerPort: {{ .Values.sidecar.port }}
+            protocol: TCP
+        {{- end }}
+        {{- if .Values.sidecar.configMap.enabled  }}
+        volumeMounts:
+          - name: {{ .Values.sidecar.configMap.name }}
+            mountPath: {{ .Values.sidecar.configMap.mountPath }}
+        {{- end }}
+        {{- if .Values.sidecar.env }}
+        env:
+          {{- toYaml .Values.sidecar.env | nindent 12 }}
+        {{- end }}
+        {{- if .Values.sidecar.envFrom }}
+        envFrom:
+          {{- toYaml .Values.sidecar.envFrom | nindent 12 }}
+        {{- end }}
+    {{- end }}
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}
     {{ end }}
