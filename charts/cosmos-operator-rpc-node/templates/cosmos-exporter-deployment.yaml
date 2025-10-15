@@ -31,7 +31,7 @@ data:
             url: http://{{ $.Release.Name }}-sentry-{{ $i }}:1317
             healthEndpoint: /cosmos/base/node/v1beta1/status
     node:
-      client: test
+      client: {{ $.Values.commonLabels.client }}
       tendermint:
         nodeInfo:
           enabled: true

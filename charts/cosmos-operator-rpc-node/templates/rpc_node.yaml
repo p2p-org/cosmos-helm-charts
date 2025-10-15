@@ -171,16 +171,28 @@ spec:
         resources:
           {{ toYaml .Values.sidecar.resources | nindent 12 }}
         {{- end }}
-        {{- if .Values.sidecar.port }}
+        {{- if .Values.sidecar.ports }}
         ports:
-          - name: {{ .Values.sidecar.portName }}
-            containerPort: {{ .Values.sidecar.port }}
-            protocol: TCP
+          {{- range .Values.sidecar.ports }}
+          - name: {{ .name }}
+            containerPort: {{ .port }}
+            protocol: {{ .protocol | default "TCP" }}
+          {{- end }}
         {{- end }}
-        {{- if .Values.sidecar.configMap.enabled  }}
+        {{- if .Values.sidecar.configMaps }}
         volumeMounts:
-          - name: {{ .Values.sidecar.configMap.name }}
-            mountPath: {{ .Values.sidecar.configMap.mountPath }}
+          {{- range .Values.sidecar.configMaps }}
+          {{- if .enabled }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            {{- if .subPath }}
+            subPath: {{ .subPath }}
+            {{- end }}
+            {{- if .readOnly }}
+            readOnly: {{ .readOnly }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
         {{- end }}
         {{- if .Values.sidecar.env }}
         env:

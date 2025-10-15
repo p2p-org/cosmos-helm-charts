@@ -1,11 +1,13 @@
-{{- if .Values.sidecar.configMap.enabled }}
+{{- range .Values.sidecar.configMaps }}
+{{- if .enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.sidecar.configMap.name }}
+  name: {{ .name }}
   labels:
-    {{- include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+    {{- include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
 data:
-  {{- toYaml .Values.sidecar.configMap.data | nindent 2 }}
+  {{- toYaml .data | nindent 2 }}
+{{- end }}
 {{- end }}

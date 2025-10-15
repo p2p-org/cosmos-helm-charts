@@ -68,13 +68,32 @@ sidecar:
   imagePullPolicy: "IfNotPresent"
   command: ["/bin/sh"]
   args: []
-  port: 8080
-  portName: "sidecar-port"
-  configMap:
-    enabled: false
-    name: "sidecar-config"
-    mountPath: "/etc/sidecar"
-    data: {}
+  ports: []
+  # Example ports configuration:
+  # ports:
+  #   - name: "sidecar-port"
+  #     port: 8080
+  #     protocol: "TCP"
+  #   - name: "metrics-port"
+  #     port: 9090
+  #     protocol: "TCP"
+  configMaps: []
+  # Example ConfigMaps configuration:
+  # configMaps:
+  #   - name: "sidecar-config"
+  #     enabled: true
+  #     mountPath: "/etc/sidecar"
+  #     data:
+  #       config.yaml: |
+  #         server:
+  #           port: 8080
+  #   - name: "app-config"
+  #     enabled: true
+  #     mountPath: "/app/config"
+  #     subPath: "app.properties"
+  #     data:
+  #       app.properties: |
+  #         app.name=sidecar
   env: []
   envFrom: []
   resources: {}
