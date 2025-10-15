@@ -133,3 +133,8 @@ data:
         block:
           enabled: {{ .Values.config.network.sei.block.enabled }}
           interval: {{ .Values.config.network.sei.block.interval }}
+          window: {{ .Values.config.network.sei.block.window }}
+          tx:
+            enabled: {{ .Values.config.network.sei.block.tx.enabled }}
+          uptime:
+            persistence: {{ .Values.config.network.sei.block.uptime.persistence }}
