@@ -15,25 +15,30 @@ data:
         port: {{ .Values.config.general.metrics.port }}
         path: {{ .Values.config.general.metrics.path }}
       alerting:
-        validators: {{ .Values.config.general.alerting.validators | default "[]" }}
+        {{- if and .Values.config.general.alerting.validators (ne (len .Values.config.general.alerting.validators) 0) }}
+        validators:
+          {{- toYaml .Values.config.general.alerting.validators | nindent 10 }}
+        {{- else }}
+        validators: []
+        {{- end }}
       nodes:
         rpc:
-          {{- if .Values.config.nodes.rpc }}
-            {{- range .Values.config.nodes.rpc }}
+          {{- if and .Values.config.nodes.rpc (ne (len .Values.config.nodes.rpc) 0) }}
+          {{- range .Values.config.nodes.rpc }}
           - name: {{ .name }}
             url: {{ .url }}
             healthEndpoint: {{ .healthEndpoint }}
-            {{- end }}
+          {{- end }}
           {{- else }}
           []
           {{- end }}
         lcd:
-          {{- if .Values.config.nodes.lcd }}
-            {{- range .Values.config.nodes.lcd }}
+          {{- if and .Values.config.nodes.lcd (ne (len .Values.config.nodes.lcd) 0) }}
+          {{- range .Values.config.nodes.lcd }}
           - name: {{ .name }}
             url: {{ .url }}
             healthEndpoint: {{ .healthEndpoint }}
-            {{- end }}
+          {{- end }}
           {{- else }}
           []
           {{- end }}
@@ -65,7 +70,12 @@ data:
 
       tendermint:
         bank:
-          addresses: {{ .Values.config.network.tendermint.bank.addresses | default "[]" }}
+          {{- if and .Values.config.network.tendermint.bank.addresses (ne (len .Values.config.network.tendermint.bank.addresses) 0) }}
+          addresses:
+            {{- toYaml .Values.config.network.tendermint.bank.addresses | nindent 12 }}
+          {{- else }}
+          addresses: []
+          {{- end }}
           enabled: {{ .Values.config.network.tendermint.bank.enabled }}
           interval: {{ .Values.config.network.tendermint.bank.interval }}
         distribution:
@@ -77,6 +87,11 @@ data:
         staking:
           enabled: {{ .Values.config.network.tendermint.staking.enabled }}
           interval: {{ .Values.config.network.tendermint.staking.interval }}
+          validators: {{ .Values.config.network.tendermint.staking.validators | default true }}
+          delegations: {{ .Values.config.network.tendermint.staking.delegations | default true }}
+          commissions: {{ .Values.config.network.tendermint.staking.commissions | default true }}
+          pool: {{ .Values.config.network.tendermint.staking.pool | default true }}
+          params: {{ .Values.config.network.tendermint.staking.params | default true }}
         slashing:
           enabled: {{ .Values.config.network.tendermint.slashing.enabled }}
           interval: {{ .Values.config.network.tendermint.slashing.interval }}
@@ -96,13 +111,23 @@ data:
 
       lombard:
         ledger:
-          addresses: {{ .Values.config.network.lombard.ledger.addresses | default "[]" }}
+          {{- if and .Values.config.network.lombard.ledger.addresses (ne (len .Values.config.network.lombard.ledger.addresses) 0) }}
+          addresses:
+            {{- toYaml .Values.config.network.lombard.ledger.addresses | nindent 12 }}
+          {{- else }}
+          addresses: []
+          {{- end }}
           enabled: {{ .Values.config.network.lombard.ledger.enabled }}
           interval: {{ .Values.config.network.lombard.ledger.interval }}
 
       namada:
         account:
-          addresses: {{ .Values.config.network.namada.account.addresses | default "[]" }}
+          {{- if and .Values.config.network.namada.account.addresses (ne (len .Values.config.network.namada.account.addresses) 0) }}
+          addresses:
+            {{- toYaml .Values.config.network.namada.account.addresses | nindent 12 }}
+          {{- else }}
+          addresses: []
+          {{- end }}
           enabled: {{ .Values.config.network.namada.account.enabled }}
           interval: {{ .Values.config.network.namada.account.interval }}
         pos:
