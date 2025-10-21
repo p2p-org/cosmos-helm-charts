@@ -87,11 +87,11 @@ data:
         staking:
           enabled: {{ .Values.config.network.tendermint.staking.enabled }}
           interval: {{ .Values.config.network.tendermint.staking.interval }}
-          validators: {{ .Values.config.network.tendermint.staking.validators | default true }}
-          delegations: {{ .Values.config.network.tendermint.staking.delegations | default true }}
-          commissions: {{ .Values.config.network.tendermint.staking.commissions | default true }}
-          pool: {{ .Values.config.network.tendermint.staking.pool | default true }}
-          params: {{ .Values.config.network.tendermint.staking.params | default true }}
+          validators: {{ .Values.config.network.tendermint.staking.validators }}
+          delegations: {{ .Values.config.network.tendermint.staking.delegations }}
+          commissions: {{ .Values.config.network.tendermint.staking.commissions }}
+          pool: {{ .Values.config.network.tendermint.staking.pool }}
+          params: {{ .Values.config.network.tendermint.staking.params }}
         slashing:
           enabled: {{ .Values.config.network.tendermint.slashing.enabled }}
           interval: {{ .Values.config.network.tendermint.slashing.interval }}
