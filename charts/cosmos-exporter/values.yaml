@@ -85,6 +85,11 @@ config:
       staking:
         enabled: true
         interval: 30
+        validators: true
+        delegations: true
+        commissions: true
+        pool: true
+        params: true
       slashing:
         enabled: true
         interval: 30
