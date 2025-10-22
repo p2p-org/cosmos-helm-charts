@@ -84,9 +84,9 @@ spec:
             - name: config
               mountPath: /config.yaml
               subPath: config.yaml
-          {{- if $.Values.resources }}
+          {{- if $.Values.cosmosExporter.resources }}
           resources:
-            {{ toYaml $.Values.resources | nindent 12 }}
+            {{ toYaml $.Values.cosmosExporter.resources | nindent 12 }}
           {{- end }}
       volumes:
         - name: config
