@@ -179,6 +179,14 @@ spec:
             protocol: {{ .protocol | default "TCP" }}
           {{- end }}
         {{- end }}
+        {{- if .Values.sidecar.env }}
+        env:
+          {{- toYaml .Values.sidecar.env | nindent 12 }}
+        {{- end }}
+        {{- if .Values.sidecar.envFrom }}
+        envFrom:
+          {{- toYaml .Values.sidecar.envFrom | nindent 12 }}
+        {{- end }}
         {{- if .Values.sidecar.configMaps }}
         volumeMounts:
           {{- range .Values.sidecar.configMaps }}
@@ -194,14 +202,16 @@ spec:
           {{- end }}
           {{- end }}
         {{- end }}
-        {{- if .Values.sidecar.env }}
-        env:
-          {{- toYaml .Values.sidecar.env | nindent 12 }}
-        {{- end }}
-        {{- if .Values.sidecar.envFrom }}
-        envFrom:
-          {{- toYaml .Values.sidecar.envFrom | nindent 12 }}
-        {{- end }}
+      {{- end }}
+    {{- if .Values.sidecar.configMaps }}
+    volumes:
+      {{- range .Values.sidecar.configMaps }}
+      {{- if .enabled }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .name }}
+      {{- end }}
+      {{- end }}
     {{- end }}
     {{ if .Values.priorityClassName }}
     priorityClassName: {{ .Values.priorityClassName }}
