@@ -162,9 +162,19 @@ spec:
     containers:
       - name: {{ .Values.sidecar.name }}
         image: {{ .Values.sidecar.image }}
+        {{- if .Values.sidecar.command }}
+        {{- if kindIs "slice" .Values.sidecar.command }}
+        command: {{ toYaml .Values.sidecar.command | nindent 8 }}
+        {{- else }}
         command: {{ .Values.sidecar.command }}
+        {{- end }}
+        {{- end }}
         {{- if .Values.sidecar.args }}
+        {{- if kindIs "slice" .Values.sidecar.args }}
+        args: {{ toYaml .Values.sidecar.args | nindent 8 }}
+        {{- else }}
         args: {{ .Values.sidecar.args }}
+        {{- end }}
         {{- end }}
         imagePullPolicy: {{ .Values.sidecar.imagePullPolicy }}
         {{- if .Values.sidecar.resources }}
