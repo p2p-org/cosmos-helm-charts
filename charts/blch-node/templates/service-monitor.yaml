@@ -1,0 +1,131 @@
+{{- if .Values.monitoring.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-metrics
+  labels:
+{{ include "blch-node.commonLabels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}
+  ports:
+    - name: metrics
+      port: 26660
+      targetPort: 26660
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-sdk-metrics
+  labels:
+{{ include "blch-node.commonLabels" . | nindent 4 }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-external-latest-height
+  labels:
+{{ include "blch-node.commonLabels" . | nindent 4 }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-json-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+  - port: http
+    path: /probe
+    params:
+      module: [latest_block_height]
+      target: [{{ trimSuffix "/" .Values.monitoring.publicRpcEndpoint }}/status]
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+    - sourceLabels: []
+      targetLabel: namespace
+      replacement: {{ .Release.Namespace }}
+    - sourceLabels: []
+      targetLabel: cosmos_node
+      replacement: {{ .Release.Name }}
+    - sourceLabels: []
+      targetLabel: rpc_endpoint
+      replacement: {{ .Values.monitoring.publicRpcEndpoint }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-internal-latest-height
+  labels:
+{{ include "blch-node.commonLabels" . | nindent 4 }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-json-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+  - port: http
+    path: /probe
+    params:
+      module: [latest_block_height]
+      target: [https://{{ include "host" (dict "context" $ "endpointName" "rpc") }}/status]
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+    - sourceLabels: []
+      targetLabel: namespace
+      replacement: {{ .Release.Namespace }}
+    - sourceLabels: []
+      targetLabel: cosmos_node
+      replacement: {{ .Release.Name }}
+    - sourceLabels: []
+      targetLabel: rpc_endpoint
+      replacement: {{ include "host" (dict "context" $ "endpointName" "rpc") }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-rpc-endpoint
+  labels:
+{{ include "blch-node.commonLabels" . | nindent 4 }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-blackbox-exporter
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  endpoints:
+  - port: http
+    path: /probe
+    params:
+      module: [http_2xx]
+      target: [https://{{ include "host" (dict "context" $ "endpointName" "rpc") }}]
+    interval: 30s
+    scrapeTimeout: 10s
+    metricRelabelings:
+    - sourceLabels: []
+      targetLabel: namespace
+      replacement: {{ .Release.Namespace }}
+    - sourceLabels: []
+      targetLabel: rpc_endpoint
+      replacement: {{ include "host" (dict "context" $ "endpointName" "rpc") }}
+{{- end }}

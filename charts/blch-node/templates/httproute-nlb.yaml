@@ -1,0 +1,53 @@
+{{- if .Values.useGatewayAPI }}
+{{- range $key, $val := .Values.endpoints }}
+{{- if $val.enabled }}
+{{- $name := printf "%s-%s" $.Release.Name $key }}
+{{- $host := include "host" (dict "context" $ "endpointName" $key) }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: {{ default $name $val.ingressName }}-nlb
+  labels:
+{{ include "blch-node.commonLabels" $ | nindent 4 }}
+  annotations:
+    {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}
+spec:
+  parentRefs:
+  {{- range $.Values.gateway.listeners }}
+  - name: {{ $.Values.gateway.name }}
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    namespace: {{ $.Values.gateway.namespace }}
+    sectionName: {{ . }}
+  {{- end }}
+  hostnames:
+  - {{ $host | quote }}
+  rules:
+  {{- if kindIs "slice" $val.path }}
+  {{- range $val.path }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{ .path }}
+    backendRefs:
+    - name: {{ $.Release.Name }}-rpc
+      port: {{ .servicePort }}
+      kind: Service
+      weight: 1
+  {{- end }}
+  {{- else }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{ default "/" $val.path }}
+    backendRefs:
+    - name: {{ $.Release.Name }}-rpc
+      group: ''
+      port: {{ $val.servicePort }}
+      kind: Service
+      weight: 1
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }} 

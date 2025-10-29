@@ -1,0 +1,438 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  {{ if .Values.nodeLabels }}
+  labels:
+    {{- toYaml .Values.nodeLabels | nindent 4 }}
+    {{- if .Values.commonLabels }}
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: blch-node
+  {{ else }}
+  labels:
+    {{- if .Values.commonLabels }}
+{{ include "cosmos-operator-rpc-node.commonLabels" . | nindent 4 }}
+    {{- end }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: blch-node
+  {{ end }}
+  {{ if .Values.nodeAnnotations }}
+  annotations:
+     #TODO: Add sync-waves
+    {{- toYaml .Values.nodeAnnotations | nindent 4 }}
+  {{ end }}
+spec:
+  serviceName: {{ include "blch-node.fullname" . }}
+  replicas: {{ .Values.replicas }}
+  updateStrategy:
+    type: RollingUpdate
+    {{- if .Values.maxUnavailable }}
+    # TODO: Check if this is needed/correct
+    # Note: StatefulSet doesn't support maxUnavailable - it uses partition instead
+    # For rolling updates, you would set partition to control how many pods are updated
+    # Example: partition: 1 means only pods with ordinal >= 1 will be updated
+    rollingUpdate:
+      # partition: 0  # Uncomment and set to control rolling update behavior
+    {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/component: blch-node
+  template:
+    metadata:
+      {{- if or .Values.nodeLabels .Values.nodeAnnotations }}
+      {{- if .Values.nodeLabels }}
+      labels:
+        {{- toYaml .Values.nodeLabels | nindent 8 }}
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: blch-node
+      {{- else }}
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: blch-node
+      {{- end }}
+      {{- if .Values.nodeAnnotations }}
+      annotations:
+        {{- toYaml .Values.nodeAnnotations | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: blch-node
+      {{- end }}
+    spec:
+      imagePullPolicy: "Always"
+      {{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets }}
+      {{ end }}
+      initContainers:
+      - name: clean-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["sh"]
+        args:
+        - -c
+        - rm -rf "$HOME/.tmp/*"
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+        resources: {}
+
+      # Chain init - initializes the chain
+      - name: chain-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/chain-init.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+        resources: {}
+
+      # Genesis init - downloads genesis file
+      - name: genesis-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/genesis-init.sh"]
+        args:
+        - {{ .Values.blch.genesisURL | quote }}
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+        resources: {}
+
+      # Address book init - downloads address book
+      - name: addrbook-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/addrbook-init.sh"]
+        args:
+        - {{ .Values.blch.addrbookURL | quote }}
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+        resources: {}
+
+      # Config merge - merges configuration files
+      - name: config-merge
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/config-merge.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+        resources: {}
+
+      # Snapshot restore - downloads and extracts snapshot
+      - name: snapshot-restore
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/snapshot-restore.sh"]
+        args:
+        - {{ .Values.blch.snapshotURL | quote }}
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 2 }}
+        volumeMounts:
+        {{- include "blch-node.containerVolumeMounts" . | nindent 2 }}
+        workingDir: /home/operator
+      {{ if .Values.additionalInitContainers }}
+        {{- range $key, $value := .Values.additionalInitContainers }}
+        - name: "{{ $key }}"
+          {{ toYaml $value | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      containers:
+      # Main container for the Cosmos chain node
+      # Note: The chain configuration from the CRD (chain.*) would need to be converted to:
+      # - Environment variables for chain settings (partially done below)
+      # - ConfigMaps for app.toml, config.toml, etc. (chain.app.overrides, chain.config.overrides)
+      # - Pruning configuration (chain.app.pruning) would need to be in app.toml or env vars
+      # - Command/args for the binary execution (chain.startCmd, chain.binary)
+      # - Scripts for genesis/snapshot (chain.genesisScript, chain.snapshotScript) would need to be in ConfigMaps
+      # The CRD's service.* and instanceOverrides.* configurations are not applicable to StatefulSet
+      # and would need to be handled via separate Service resources and init scripts if needed
+      - name: node
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        {{ if .Values.resources }}
+        resources:
+          {{ toYaml .Values.resources | nindent 10 }}
+        {{ end }}
+        # TODO: double check
+        # Chain configuration would be passed as environment variables
+        # Example env vars that could be set from chain spec:
+        env:
+        - name: CHAIN_ID
+          value: {{ .Values.blch.id | quote }}
+        - name: NETWORK
+          value: {{ .Values.blch.network | quote }}
+        - name: BINARY
+          value: {{ .Values.blch.binary | quote }}
+        {{- if .Values.blch.skipInvariants }}
+        - name: SKIP_INVARIANTS
+          value: {{ .Values.blch.skipInvariants | quote }}
+        {{- end }}
+        {{- if .Values.blch.homeDir }}
+        - name: HOME_DIR
+          value: {{ .Values.blch.homeDir | quote }}
+        {{- end }}
+        {{- if .Values.blch.dataDir }}
+        - name: DATA_DIR
+          value: {{ .Values.blch.dataDir | quote }}
+        {{- end }}
+        {{- if .Values.blch.minGasPrice }}
+        - name: MIN_GAS_PRICE
+          value: {{ .Values.blch.minGasPrice | quote }}
+        {{- end }}
+        # TODO: Check and simplify
+        # Pruning configuration - chain.app.pruning from CRD
+        # This would typically be in app.toml, but can be set as env vars if the binary supports it
+        {{- if .Values.blch.pruning }}
+        - name: PRUNING_STRATEGY
+          value: {{ .Values.blch.pruning.strategy | default "custom" | quote }}
+        {{- if .Values.blch.pruning.interval }}
+        - name: PRUNING_INTERVAL
+          value: {{ .Values.blch.pruning.interval | quote }}
+        {{- end }}
+        {{- if .Values.blch.pruning.keepEvery }}
+        - name: PRUNING_KEEP_EVERY
+          value: {{ .Values.blch.pruning.keepEvery | quote }}
+        {{- end }}
+        {{- if .Values.blch.pruning.keepRecent }}
+        - name: PRUNING_KEEP_RECENT
+          value: {{ .Values.blch.pruning.keepRecent | quote }}
+        {{- end }}
+        {{- else if eq .Values.blch.nodeType "archive" }}
+        - name: PRUNING_STRATEGY
+          value: "nothing"
+        {{- else if eq .Values.blch.nodeType "full" }}
+        - name: PRUNING_STRATEGY
+          value: "custom"
+        - name: PRUNING_INTERVAL
+          value: "10"
+        - name: PRUNING_KEEP_EVERY
+          value: "0"
+        - name: PRUNING_KEEP_RECENT
+          value: "100"
+        {{- end }}
+        # Double check, probably move to init container
+        # App overrides - chain.app.overrides from CRD
+        # This should be converted to a ConfigMap mounted as app.toml
+        {{- if .Values.blch.appOverrides }}
+        - name: APP_OVERRIDES
+          value: |
+{{ .Values.blch.appOverrides | nindent 12 }}
+        {{- end }}
+        {{- if .Values.blch.genesisURL }}
+        - name: GENESIS_URL
+          value: {{ .Values.blch.genesisURL | quote }}
+        {{- end }}
+        {{- if .Values.blch.snapshotURL }}
+        - name: SNAPSHOT_URL
+          value: {{ .Values.blch.snapshotURL | quote }}
+        {{- end }}
+        {{- if .Values.blch.addrbookURL }}
+        - name: ADDRBOOK_URL
+          value: {{ .Values.blch.addrbookURL | quote }}
+        {{- end }}
+        {{- if .Values.blch.config }}
+        {{- if .Values.blch.config.seeds }}
+        - name: SEEDS
+          value: {{ .Values.blch.config.seeds | quote }}
+        {{- end }}
+        {{- if .Values.blch.config.peers }}
+        - name: PEERS
+          value: {{ .Values.blch.config.peers | quote }}
+        {{- end }}
+        {{- if .Values.blch.config.overrides }}
+        # Config overrides - chain.config.overrides from CRD
+        # This should be converted to a ConfigMap mounted as config.toml
+        - name: CONFIG_OVERRIDES
+          value: |
+{{ .Values.blch.config.overrides | nindent 12 }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.blch.additionalStartArgs }}
+        - name: ADDITIONAL_START_ARGS
+          value: {{ toYaml .Values.blch.additionalStartArgs | quote }}
+        {{- end }}
+        {{- if .Values.blch.startCmd }}
+        command:
+{{ toYaml .Values.blch.startCmd | nindent 10 }}
+        {{- end }}
+        # Standard Cosmos chain ports
+        ports:
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p.containerPort }}
+          protocol: {{ .Values.service.ports.p2p.protocol }}
+        - name: rpc
+          containerPort: {{ .Values.service.ports.rpc.containerPort }}
+          protocol: {{ .Values.service.ports.rpc.protocol }}
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc.containerPort }}
+          protocol: {{ .Values.service.ports.grpc.protocol }}
+        - name: rest
+          containerPort: {{ .Values.service.ports.rest.containerPort }}
+          protocol: {{ .Values.service.ports.rest.protocol }}
+        - name: ws
+          containerPort: {{ .Values.service.ports.ws.containerPort }}
+          protocol: {{ .Values.service.ports.ws.protocol }}
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.blch.dataDir | default "/data" }}
+        {{- if .Values.blch.homeDir }}
+        - name: home
+          mountPath: {{ .Values.blch.homeDir }}
+        {{- end }}
+        {{- if .Values.sidecar.configMaps }}
+        {{- range .Values.sidecar.configMaps }}
+        {{- if .enabled }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          {{- if .subPath }}
+          subPath: {{ .subPath }}
+          {{- end }}
+          {{- if .readOnly }}
+          readOnly: {{ .readOnly }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.sidecar.enabled }}
+      - name: {{ .Values.sidecar.name }}
+        image: {{ .Values.sidecar.image }}
+        {{- if .Values.sidecar.command }}
+        {{- if kindIs "slice" .Values.sidecar.command }}
+        command: {{ toYaml .Values.sidecar.command | nindent 8 }}
+        {{- else }}
+        command: {{ .Values.sidecar.command }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.sidecar.args }}
+        {{- if kindIs "slice" .Values.sidecar.args }}
+        args: {{ toYaml .Values.sidecar.args | nindent 8 }}
+        {{- else }}
+        args: {{ .Values.sidecar.args }}
+        {{- end }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy }}
+        {{- if .Values.sidecar.resources }}
+        resources:
+          {{ toYaml .Values.sidecar.resources | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sidecar.ports }}
+        ports:
+          {{- range .Values.sidecar.ports }}
+          - name: {{ .name }}
+            containerPort: {{ .port }}
+            protocol: {{ .protocol | default "TCP" }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.sidecar.env }}
+        env:
+          {{- toYaml .Values.sidecar.env | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sidecar.envFrom }}
+        envFrom:
+          {{- toYaml .Values.sidecar.envFrom | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sidecar.configMaps }}
+        volumeMounts:
+          {{- range .Values.sidecar.configMaps }}
+          {{- if .enabled }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            {{- if .subPath }}
+            subPath: {{ .subPath }}
+            {{- end }}
+            {{- if .readOnly }}
+            readOnly: {{ .readOnly }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{ if .Values.nodeSelectorLabel }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelectorLabel | nindent 8 }}
+      {{ end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{ if .Values.nodeSelectorKey }}
+      affinity:
+      {{- if .Values.podAntiAffinityPerNode }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ .Release.Name }}
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ .Release.Name }}
+            topologyKey: "topology.kubernetes.io/zone"
+      {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              {{- if .Values.affinityAdditionalMatches }}
+              {{ toYaml .Values.affinityAdditionalMatches | nindent 14 }}
+              {{- end }}
+              - key: blch
+                operator: In
+                values:
+                - "true"
+              - key: {{ .Values.nodeSelectorKey }}
+                operator: In
+                values:
+                - "true"
+      {{ end }}
+      {{ if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{ end }}
+      {{- if .Values.sidecar.configMaps }}
+      volumes:
+        {{- range .Values.sidecar.configMaps }}
+        {{- if .enabled }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .name }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.storage }}
+      {{ if .Values.storageClassName }}
+      storageClassName: {{ .Values.storageClassName }}
+      {{ end }}
+  {{ if .Values.volumeRetainPolicy }}
+  # Note: volumeRetentionPolicy from CRD is not directly supported in StatefulSet
+  # PVCs would need to be managed separately with appropriate retention policies
+  {{ end }}

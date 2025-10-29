@@ -1,0 +1,52 @@
+{{- if not .Values.useGatewayAPI }}
+{{- range $key, $val := .Values.endpoints }}
+{{- if $val.enabled }}
+{{- $name := printf "%s-%s" $.Release.Name $key }}
+{{- $host := include "host" (dict "context" $ "endpointName" $key) }}
+{{- $tlsSecretName := printf "%s-%s" $host "tls" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ default $name $val.ingressName }}-nlb
+  labels:
+{{ include "blch-node.commonLabels" $ | nindent 4 }}
+  annotations:
+    {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}
+    {{- if $.Values.basicAuth.enabled }}
+    nginx.ingress.kubernetes.io/auth-type: "basic"
+    nginx.ingress.kubernetes.io/auth-secret: "{{ $.Release.Name }}-basic-auth"
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required - Login"
+    {{- end }}
+spec:
+  ingressClassName: nginx-nlb
+  rules:
+    - host: {{ $host | quote }}
+      http:
+        paths:
+        {{- if kindIs "slice" $val.path }}
+        {{- range $val.path }}
+          - path: {{ .path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $.Release.Name }}-rpc
+                port:
+                  number: {{ .servicePort }}
+        {{- end }}
+        {{- else }}
+          - path: {{ default "/" $val.path }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $.Release.Name }}-rpc
+                port:
+                  number: {{ $val.servicePort }}
+        {{- end }}
+  tls:
+  - hosts:
+    - {{ default $host $val.tlsHost | quote }}
+    secretName: {{ default $tlsSecretName $val.tlsSecretName }}
+{{- end }}
+{{- end }}
+{{- end }}

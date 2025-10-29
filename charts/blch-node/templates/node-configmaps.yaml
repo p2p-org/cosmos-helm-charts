@@ -1,0 +1,48 @@
+{{- if .Values.blch.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-override
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "blch-node.labels" . | nindent 4 }}
+data:
+  config.toml: |
+  {{- if .Values.blch.config.seeds }}
+  seeds = {{ .Values.blch.config.seeds | quote }}
+  {{- end }}
+  {{- if .Values.blch.config.peers }}
+  peers = {{ .Values.blch.config.peers | quote }}
+  {{- end }}
+  {{- if .Values.blch.config.kvIndexerEnabled }}
+  [tx_index]
+  indexer = "kv"
+  {{- end }}
+  {{- if .Values.blch.config.overrides }}
+  {{- .Values.blch.config.overrides | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-app-override
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "blch-node.labels" . | nindent 4 }}
+data:
+  app.toml: |
+  minimum-gas-prices: {{ .Values.blch.minGasPrice | quote }}
+  pruning: {{ .Values.blch.pruning.strategy | quote }}
+  {{- if .Values.blch.pruning.interval }}
+  pruning-interval: {{ .Values.blch.pruning.interval | quote }}
+  {{- end }}
+  {{- if .Values.blch.pruning.keepEvery }}
+  pruning-keep-every: {{ .Values.blch.pruning.keepEvery | quote }}
+  {{- end }}
+  {{- if .Values.blch.pruning.keepRecent }}
+  pruning-keep-recent: {{ .Values.blch.pruning.keepRecent | quote }}
+  {{- end }}
+  {{- if .Values.blch.appOverrides }}
+  {{- .Values.blch.appOverrides | nindent 4 }}
+  {{- end }}
