@@ -21,10 +21,6 @@ Common environment variables for containers
   value: {{ .Values.blch.network | quote }}
 - name: BINARY
   value: {{ .Values.blch.binary | quote }}
-- name: SKIP_INVARIANTS
-  value: {{ .Values.blch.skipInvariants | quote }}
-- name: MIN_GAS_PRICE
-  value: {{ .Values.blch.minGasPrice | quote }}
 {{- end }}
 
 {{/*
