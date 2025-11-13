@@ -15,6 +15,12 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# Image pull secrets (for private registries like GHCR)
+# Example:
+# imagePullSecrets:
+#   - name: ghcr-secret
+imagePullSecrets: []
+
 # Resource limits
 resources:
   requests:
