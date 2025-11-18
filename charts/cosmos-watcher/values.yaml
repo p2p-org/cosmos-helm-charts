@@ -1,70 +1,153 @@
-# Default values for cosmos-watcher.
+# Default values for cosmos-watcher
+
+# Name override (optional)
+nameOverride: ""
+
+# Full name override (optional)
+fullnameOverride: ""
+
+# Replica count (StatefulSet typically uses 1 replica)
 replicaCount: 1
 
-# Container configurations
-containers:
-  main:
-    image: ghcr.io/p2p-org/devops-cosmos-watcher
-    tag: v1.0.0
-    pullPolicy: Always
-    ports:
-      - name: http
-        containerPort: 8080
-        protocol: TCP
-    resources:
-      requests:
-        memory: 512Mi
-        cpu: 100m
-      limits:
-        memory: 512Mi
-        cpu: 100m
-    command: []
-    args: []
-    livenessProbe:
-      tcpSocket:
-        port: 8080
-      initialDelaySeconds: 60
-      periodSeconds: 20
-      timeoutSeconds: 5
-      failureThreshold: 3
-    readinessProbe:
-      tcpSocket:
-        port: 8080
-      periodSeconds: 5
-      timeoutSeconds: 1
-      failureThreshold: 3
-    volumeMounts: []
-    env:
-      - name: GITHUB_API_URL
-        value: https://raw.githubusercontent.com
-      - name: CHAIN_REGISTRY_BASE_URL
-        value: /cosmos/chain-registry/master
-      - name: SLACK_WEBHOOK_URL
-        valueFrom:
-          secretKeyRef:
-            name: slack-webhook-url
-            key: url
-      - name: POLLING_INTERVAL
-        value: 5m
-      - name: LOG_LEVEL
-        value: info
-      - name: CACHE_DURATION
-        value: 5m
-    envFrom: []
+# Image configuration
+image:
+  repository: ghcr.io/p2p-org/devops-cosmos-watcher
+  tag: latest
+  pullPolicy: IfNotPresent
 
-imagePullSecrets:
-- name: github-secret
+# Image pull secrets (for private registries like GHCR)
+# Example:
+# imagePullSecrets:
+#   - name: ghcr-secret
+imagePullSecrets: []
 
+# Resource limits
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# Health probes
+livenessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/v1/health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+# Environment variables
+env: []
+
+# Environment variables from ConfigMaps/Secrets (envFrom)
+# Example:
+# envFrom:
+#   - configMapRef:
+#       name: my-config
+#   - secretRef:
+#       name: my-secret
+envFrom: []
+
+# External Secrets configuration (for OCI secret store)
+externalSecrets:
+  - name: cosmos-watcher-secrets
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: oci-secrets
+    target:
+      name: cosmos-watcher-secrets
+      creationPolicy: Owner
+    data:
+      - secretKey: SLACK_WEBHOOK_URL
+        remoteRef:
+          key: SLACK_WEBHOOK_URL
+      - secretKey: GITHUB_TOKEN
+        remoteRef:
+          key: GITHUB_API_SECRET
+          property: GITHUB_SECRET
+
+# ConfigMap for config.yaml
+configMap:
+  enabled: true
+  name: ""  # Defaults to release name
+
+# Application configuration (will be written to config.yaml in ConfigMap)
+config:
+  server:
+    port: "8080"
+    read_timeout: "5s"
+    write_timeout: "10s"
+
+  github:
+    api_url: "https://api.github.com"
+    token: ""  # Loaded from GITHUB_TOKEN env var
+    timeout: "30s"
+
+  slack:
+    webhook_url: ""  # Loaded from SLACK_WEBHOOK_URL env var
+    notification_threshold: "24h"
+
+  poller:
+    interval: "5m"
+    timeout: "30s"
+
+  # Persistence configuration
+  persistence:
+    data_dir: "/data"  # Directory for persistent state files (matches volumeClaimTemplate mount path)
+
+  # Blockchains to monitor
+  blockchains:
+    - name: cosmoshub
+      display_name: Cosmos Hub
+      network: mainnet
+      node_types: ["RPC", "Validator"]
+      github_repos:
+        - owner: cosmos
+          repo: gaia
+
+  # Additional GitHub repos to monitor (not tied to specific chains)
+  github_repos: []
+
+# Persistence configuration for StatefulSet
 persistence:
-  enabled: false
-  storageClass: ""
   accessMode: ReadWriteOnce
   size: 1Gi
+  storageClass: ""  # Use default storage class if empty
 
-# External Secrets configuration
-externalSecrets: []
+# Pod annotations
+podAnnotations: {}
 
-# Ingress configuration
+# Pod labels
+podLabels: {}
+
+# Node selector
+nodeSelector: {}
+
+# Affinity settings
+affinity: {}
+
+# Tolerations (use array format: [])
+tolerations: []
+
+# Headless Service for StatefulSet (required for StatefulSet)
+service:
+  enabled: true  # StatefulSet requires a service
+
+# Ingress configuration (optional)
 ingress:
   enabled: false
   className: ""
@@ -75,63 +158,3 @@ ingress:
         - path: /
           pathType: Prefix
   tls: []
-
-# Affinity settings
-affinity: {}
-
-# Node selector
-nodeSelector: {}
-
-# Tolerations
-tolerations: []
-
-# Additional labels
-labels: {}
-
-# Pod annotations
-podAnnotations: {}
-
-# Service account
-serviceAccount:
-  create: true
-  name: ""
-  annotations: {}
-
-# Pod security context
-podSecurityContext: {}
-
-# Security context
-securityContext: {}
-
-# Image pull policy
-imagePullPolicy: Always
-
-# Additional volumes
-volumes: []
-
-# Additional volumes
-additionalVolumes: []
-
-# Init containers
-initContainers: {}
-
-# Deployment strategy
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxSurge: 1
-    maxUnavailable: 0
-
-# Autoscaling configuration
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 3
-  targetCPUUtilizationPercentage: 80
-
-# The port to expose the service on
-service:
-  port: 8080
-
-# Create a secret for the image pull secret
-createSecret: false

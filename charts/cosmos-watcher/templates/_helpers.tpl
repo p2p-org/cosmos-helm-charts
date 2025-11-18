@@ -50,13 +50,3 @@ app.kubernetes.io/name: {{ include "cosmos-watcher.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "cosmos-watcher.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "cosmos-watcher.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

@@ -1,0 +1,38 @@
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.name | default (include "cosmos-watcher.fullname" .) }}
+  labels:
+    {{- include "cosmos-watcher.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+{{- if .Values.config }}
+{{ .Values.config | toYaml | indent 4 }}
+{{- else }}
+    server:
+      port: "8080"
+      read_timeout: "5s"
+      write_timeout: "10s"
+
+    github:
+      api_url: "https://api.github.com"
+      token: ""
+      timeout: "30s"
+
+    slack:
+      webhook_url: ""
+      notification_threshold: "24h"
+
+    poller:
+      interval: "5m"
+      timeout: "30s"
+
+    persistence:
+      data_dir: "/data"
+
+    blockchains: []
+    github_repos: []
+{{- end }}
+{{- end }}
+

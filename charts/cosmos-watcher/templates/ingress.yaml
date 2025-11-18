@@ -37,7 +37,7 @@ spec:
               service:
                 name: {{ include "cosmos-watcher.fullname" $ }}
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: 8080
           {{- end }}
     {{- end }}
 {{- end }}
