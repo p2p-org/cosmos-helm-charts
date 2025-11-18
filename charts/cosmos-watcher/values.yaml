@@ -124,9 +124,11 @@ config:
 
 # Persistence configuration for StatefulSet
 persistence:
+  enabled: true  # Enable persistence (required for StatefulSet)
   accessMode: ReadWriteOnce
   size: 1Gi
   storageClass: ""  # Use default storage class if empty
+  fsGroup: 10001  # Filesystem group for volume permissions (matches appuser UID from Dockerfile)
 
 # Pod annotations
 podAnnotations: {}
