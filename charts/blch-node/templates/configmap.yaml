@@ -24,13 +24,13 @@ data:
     {{- . | nindent 4 }}
     {{- end }}
   app-overlay.toml: |
-    minimum-gas-prices: {{ .Values.blch.minGasPrice | quote }}
+    minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
     {{- with .Values.blch.pruning }}
-    pruning: {{ .strategy | default "custom" | quote }}
-    pruning-keep-recent: {{ .keepRecent | default 100 | quote }}
-    pruning-interval: {{ .interval | default 10 | quote }}
+    pruning-strategy = {{ .strategy | default "custom" | quote }}
+    pruning-keep-recent = {{ .keepRecent | default 100 | quote }}
+    pruning-interval = {{ .interval | default 10 | quote }}
     {{- with .keepEvery }}
-    pruning-keep-every: {{ . | quote }}
+    pruning-keep-every = {{ . | quote }}
     {{- end }}
     {{- end }}
     {{- with .Values.blch.appOverrides }}

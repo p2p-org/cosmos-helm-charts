@@ -1,0 +1,32 @@
+image: ghcr.io/p2p-org/cosmos-heighliner
+imageTag: provider-v25.2.0
+replicas: 1
+storage:
+  data: 50Gi
+
+blch:
+  nodeType: fullnode
+  pruning:
+    strategy: default
+  id: provider
+  name: cosmoshub
+  skipInvariants: false
+  network: testnet
+  minGasPrice: 0.0025uatom
+  binary: gaiad
+  snapshotURL: https://snapshots.polkachu.com/testnet-snapshots/cosmos/cosmos_14867802.tar.lz4
+  genesisURL: https://ss-rs.cosmos.nodestake.org/genesis.json
+  addrbookURL: https://ss-rs.cosmos.nodestake.org/addrbook.json
+monitoring:
+  enabled: false
+endpoints:
+  rpc:
+    enabled: false
+  grpc:
+    enabled: false
+rollingUpdateEnabled: true
+
+debug:
+  enabled: false
+blockRollback:
+  enabled: true

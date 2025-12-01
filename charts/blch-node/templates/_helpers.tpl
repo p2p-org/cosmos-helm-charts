@@ -20,6 +20,8 @@ Based on cosmosfullnode.yaml pod template
   value: {{ $home | quote }}
 - name: CHAIN_HOME
   value: {{ $home | quote }}
+- name: homeDir
+  value: {{ $homeDir | quote }}
 - name: GENESIS_FILE
   value: {{ printf "%s/config/genesis.json" $home | quote }}
 - name: ADDRBOOK_FILE
@@ -27,7 +29,7 @@ Based on cosmosfullnode.yaml pod template
 - name: CONFIG_DIR
   value: {{ printf "%s/config" $home | quote }}
 - name: DATA_DIR
-    value: {{ printf "%s/data" $home | quote }}
+  value: {{ printf "%s/data" $home | quote }}
 {{- with .Values.blch.id }}
 - name: CHAIN_ID
   value: {{ . | quote }}
@@ -37,9 +39,13 @@ Based on cosmosfullnode.yaml pod template
   value: {{ . | quote }}
 {{- end }}
 {{- with .Values.blch.binary }}
-- name: BINARY
+- name: CHAIN_BINARY
   value: {{ . | quote }}
 {{- end }}
+- name: NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
 {{- end }}
 
 {{/*
@@ -50,9 +56,9 @@ Based on cosmosfullnode.yaml pod template
 {{- $homeDir := .Values.blch.homeDir -}}
 {{- $home := printf "/home/operator/%s" $homeDir -}}
 - mountPath: {{ printf "%s/data" $home }}
-  name: vol-chain-home-data
+  name: data
 - mountPath: {{ printf "%s/config" $home }}
-  name: vol-chain-home-config
+  name: config
 - mountPath: /tmp
   name: vol-system-tmp
 - mountPath: {{ printf "%s/.tmp" $home }}
@@ -69,9 +75,9 @@ Based on cosmosfullnode.yaml pod template
 {{- $homeDir := .Values.blch.homeDir -}}
 {{- $home := printf "/home/operator/%s" $homeDir -}}
 - mountPath: {{ printf "%s/data" $home }}
-  name: vol-chain-home-data
+  name: data
 - mountPath: {{ printf "%s/config" $home }}
-  name: vol-chain-home-config
+  name: config
 - mountPath: /tmp
   name: vol-system-tmp
 {{- end }}

@@ -28,7 +28,10 @@ podAntiAffinityPerNode: true
 volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
-
+blockRollback:
+  enabled: false
+debug:
+  enabled: false
 # resources: {}
 
 # Optional additional configuration for the pod template

@@ -1,0 +1,218 @@
+# Default values for RPC nodes
+
+## Pod Specs
+image: "ghcr.io/p2p-org/cosmos-heighliner"
+imageTag: ""
+toolkitImage: ghcr.io/p2p-org/cosmos-heighliner
+toolkitImageTag: infra-toolkit-v1.0.6
+imagePullSecrets: "github-secret"
+replicas: 1
+maxUnavailable: ""
+#storage: ""
+storage:
+  config: "50Gi"
+storageClassName: "oci-bv"
+# Note: Key to be used for node affinity
+nodeSelectorKey: ""
+# Note: [Optional] Additional matches for node affinity
+# affinityAdditionalMatches: {}
+# Note: [Optional] Label to be used for node selector
+# nodeSelectorLabel: {}
+# Note: [Optional] Enable podAntiAffinity to run only one pod per hostname
+podAntiAffinityPerNode: true
+volumeRetainPolicy: "Delete"
+# Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
+rollingUpdateEnabled: true
+# resources: {}
+
+# Note: Optional additional configuration for the pod template
+# initContainers: []
+# cosmosNodeLabels:
+#   app: "rpc-node"
+#   abc: "xyz"
+# cosmosNodeAnnotations: {}
+# priorityClassName
+
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+
+service:
+  # Note: Allow endpoints to be available while pods are not ready during sync
+  publishSvcDuringSync: true
+# Note: Optional additional configuration for the services
+# additionalServiceConfig:
+#   maxP2PExternalAddresses: 1
+#   p2pTemplate:
+#     metadata:
+#       labels:
+#         extra: labels
+#       annotations:
+#         extra: annotations
+#     type: NodePort
+
+## Chain Specs
+blch:
+  # NOTE: Whether the node is a full or archive node. Options are "full" or "archive"
+  nodeType: ""
+  id: ""
+  network: ""
+  binary: ""
+  skipInvariants: true
+  # NOTE: Provide either a genesisURL or snapshotURL for the syncing process
+  # genesisURL: ""
+  # snapshotURL: ""
+  minGasPrice: ""
+  # appOverrides: |-
+  #   [json-rpc]
+  #   ws-address = "0.0.0.0:8546"
+
+  # NOTE: Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
+  # addrbookURL: ""
+
+  # NOTE: Optional additional configuration for the network
+  config:
+    # peers: ""
+    # seeds: ""
+    overrides: |-
+      [tx_index]
+      indexer = "kv"
+  # additionalStartArgs: ""
+  # homeDir: ""
+
+  # Note:Optional pruning configuration, by default archive nodes are set to nothing, and full nodes are set to keep 100 recent blocks
+  # pruning:
+  #   strategy: "custom"
+  #   interval: 10
+  #   keepEvery: 0
+  #   keepRecent: 100
+
+restartNode:
+  enabled: false
+
+monitoring:
+  enabled: true
+  publicRpcEndpoint: ""
+  alerts:
+    enabled: true
+    growingBlockHeightDifference: 25
+    maximumBlockHeightDifference: 100
+    maximumPeerDropPercentage: 25
+
+publishSnapshot:
+  enabled: false
+  baseDomain: "fraagfwhkrf0.objectstorage.eu-frankfurt-1.oci.customer-oci.com"
+  cronJobSchedule: "0 */12 * * *"
+  # The path prefix for the snapshots in the object storage bucket. The path should be in the format of /n/<namespace>/b/<bucket>/o
+  pathPrefix: "/n/fraagfwhkrf0/b/cosmos-rpc-rpc-snapshots/o"
+  bucketName: "cosmos-rpc-rpc-snapshots"
+archiveBackup:
+  enabled: false
+  # Run the cron job once a day at 12:00 AM
+  cronJobSchedule: "0 0 * * *"
+  retentionCount: 2
+
+# Note: Basic Auth can be enabled  for all RPC endpoints, it will create a secret with a randomly generated username and password. Check NOTES.txt to retrieve the credentials.
+basicAuth:
+  enabled: false
+
+endpointsBaseDomain: "tm.p2p.org"
+
+## Ingress Specs
+endpoints:
+# Note: Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:
+#   enabled: A boolean value to enable or disable the RPC service.
+#   servicePort: The port number for the RPC service. This is defined by the cosmos-operator and created as part of CosmosFullNode.
+#   path: (Optional) The path to set for the endpoints, default to `/` if not set.
+#   ingressName: (Optional) The name of the ingress resource.
+#   host: (Optional) The host for the ingress.
+#   tlsHost: (Optional) The TLS host for the ingress.
+#   tlsSecretName: (Optional) The name of the TLS secret.
+#   additionalIngressAnnotations: (Optional) Additional annotations for the ingress. For example, you can specify timeouts and cors.
+# Note that some endpoints might need additional overrides to work properly, you can define them as appOverrides under the blch specs.
+
+  rpc:
+    enabled: true
+    servicePort: 26657
+    additionalIngressAnnotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "X-Csrftoken, Origin, X-Requested-With, Content-Type, Accept"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: 110m
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+      nginx.ingress.kubernetes.io/use-regex: "true"
+  grpc:
+    enabled: true
+    servicePort: 9090
+    additionalIngressAnnotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "X-Csrftoken, Origin, X-Requested-With, Content-Type, Accept"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: 110m
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+      nginx.ingress.kubernetes.io/grpc-backend: "true"
+      nginx.ingress.kubernetes.io/server-snippet: |
+        client_body_timeout 3600s;
+        grpc_read_timeout 3600s;
+        grpc_send_timeout 3600s;
+  ws:
+    enabled: false
+    servicePort: 8546
+    additionalIngressAnnotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "X-Csrftoken, Origin, X-Requested-With, Content-Type, Accept"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "110m"
+      nginx.ingress.kubernetes.io/proxy-buffer-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/enable-websocket: "true"
+      nginx.ingress.kubernetes.io/proxy-connection: "upgrade"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  ws-rpc:
+    enabled: false
+    servicePort: 26657
+    path: /websocket
+    additionalIngressAnnotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "X-Csrftoken, Origin, X-Requested-With, Content-Type, Accept"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "110m"
+      nginx.ingress.kubernetes.io/proxy-buffer-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      nginx.ingress.kubernetes.io/enable-websocket: "true"
+      nginx.ingress.kubernetes.io/proxy-connection: "upgrade"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  rest:
+    enabled: false
+    servicePort: 1317
+    additionalIngressAnnotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "X-Csrftoken, Origin, X-Requested-With, Content-Type, Accept"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: 110m
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 8m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+      nginx.ingress.kubernetes.io/use-regex: "true"
+

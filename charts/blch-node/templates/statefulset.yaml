@@ -28,7 +28,6 @@ spec:
       labels:
         {{- include "blch-node.labels" . | nindent 8 }}
     spec:
-      imagePullPolicy: "Always"
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         - name: {{ . }}
@@ -48,9 +47,15 @@ spec:
 
       # Chain init - initializes the chain
       - name: chain-init
-        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
-        command: ["/scripts/chain-init.sh"]
+        command: ["sh"]
+        args:
+        - -c
+        - |
+          [ ! -d "$CHAIN_HOME/data" ] && echo "Initializing chain..." && $CHAIN_BINARY init --chain-id $CHAIN_ID $NODE_NAME --home "$CHAIN_HOME" || echo "Skipping chain init; already initialized."
+          echo "Initializing into tmp dir for downstream processing..."
+          $CHAIN_BINARY init --chain-id $CHAIN_ID $NODE_NAME --home "$HOME/.tmp"
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         volumeMounts:
@@ -64,6 +69,7 @@ spec:
         command: ["/scripts/genesis-init.sh"]
         args:
         - {{ . | quote }}
+        workingDir: /scripts
         env:
         {{- include "blch-node.containerEnv" $ | nindent 10 }}
         volumeMounts:
@@ -78,12 +84,12 @@ spec:
         command: ["/scripts/addrbook-init.sh"]
         args:
         - {{ . | quote }}
+        workingDir: /scripts
         env:
         {{- include "blch-node.containerEnv" $ | nindent 10 }}
         volumeMounts:
         {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
-        workingDir: /home/operator
-        resources: {}
+        workingDir: /scripts
       {{- end }}
 
       # Config merge - merges configuration files
@@ -104,15 +110,46 @@ spec:
         command: ["/scripts/snapshot-restore.sh"]
         args:
         - {{ . | quote }}
+        workingDir: /scripts
         env:
         {{- include "blch-node.containerEnv" $ | nindent 10 }}
         volumeMounts:
         {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
       {{- end }}
+      {{- if .Values.blockRollback.enabled }}
+      # Block rollback init container - rolls back blockchain state
+      - name: block-rollback
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["sh"]
+        args:
+        - -c
+        - |
+          {{ .Values.blch.binary }} rollback --home "$CHAIN_HOME"
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
+      {{- end }}
+      {{- if .Values.debug.enabled }}
+      # Debug init container - keeps container running for debugging
+      - name: debug-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/keep-running.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
+      {{- end }}
       {{- with .Values.additionalInitContainers }}
         {{- range $key, $value := . }}
         - name: "{{ $key }}"
           {{ toYaml $value | nindent 10 }}
+          env:
+          {{- include "blch-node.containerEnv" $ | nindent 10 }}
+          volumeMounts:
+          {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
         {{- end }}
       {{- end }}
       containers:
@@ -187,19 +224,19 @@ spec:
         startupProbe:
           exec:
             command: ["/scripts/rpc-health-check.sh"]
-          initialDelaySeconds: {{ .Values.healthcheck.startupProbe.initialDelaySeconds | quote }}
-          periodSeconds: {{ .Values.healthcheck.startupProbe.periodSeconds | quote }}
-          timeoutSeconds: {{ .Values.healthcheck.startupProbe.timeoutSeconds | quote }}
-          failureThreshold: {{ .Values.healthcheck.startupProbe.failureThreshold | quote }}
-          successThreshold: {{ .Values.healthcheck.startupProbe.successThreshold | quote }}
+          initialDelaySeconds: {{ .Values.healthcheck.startupProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.healthcheck.startupProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.healthcheck.startupProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.healthcheck.startupProbe.failureThreshold }}
+          successThreshold: {{ .Values.healthcheck.startupProbe.successThreshold }}
         readinessProbe:
           exec:
             command: ["/scripts/rpc-health-check.sh"]
-          initialDelaySeconds: {{ .Values.healthcheck.readinessProbe.initialDelaySeconds | quote }}
-          periodSeconds: {{ .Values.healthcheck.readinessProbe.periodSeconds | quote }}
-          timeoutSeconds: {{ .Values.healthcheck.readinessProbe.timeoutSeconds | quote }}
-          failureThreshold: {{ .Values.healthcheck.readinessProbe.failureThreshold | quote }}
-          successThreshold: {{ .Values.healthcheck.readinessProbe.successThreshold | quote }}
+          initialDelaySeconds: {{ .Values.healthcheck.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.healthcheck.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.healthcheck.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.healthcheck.readinessProbe.failureThreshold }}
+          successThreshold: {{ .Values.healthcheck.readinessProbe.successThreshold }}
         {{- with .Values.healthcheck.resources }}
         resources:
           {{ toYaml . | nindent 10 }}
@@ -330,7 +367,7 @@ spec:
       {{- end }}
   volumeClaimTemplates:
   - metadata:
-      name: vol-chain-home-data
+      name: data
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
@@ -340,7 +377,7 @@ spec:
       storageClassName: {{ . }}
       {{- end }}
   - metadata:
-      name: vol-chain-home-config
+      name: config
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
