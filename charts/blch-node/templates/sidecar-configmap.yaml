@@ -6,7 +6,7 @@ kind: ConfigMap
 metadata:
   name: {{ .name }}
   labels:
-    {{- include "blch-node.commonLabels" $ | nindent 4 }}
+    {{- include "blch-node.labels" $ | nindent 4 }}
 data:
   {{- toYaml .data | nindent 2 }}
 {{- end }}

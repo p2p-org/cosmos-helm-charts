@@ -1,40 +1,79 @@
-{{/*
-Common labels
-*/}}
-{{- define "blch-node.commonLabels" -}}
-{{- if and .Values.commonLabels (kindIs "map" .Values.commonLabels) }}
-{{- toYaml .Values.commonLabels | nindent 0 }}
+{{- define "blch-node.labels" -}}
+app.kubernetes.io/name: {{ .Release.Name }}
+{{- $labels := .Values.labels }}
+{{- if not $labels }}
+{{- $labels = .Values.commonLabels }}
+{{- end }}
+{{- with $labels }}
+{{- toYaml . | nindent 0 }}
 {{- end }}
 {{- end }}
 
 {{/*
-Common environment variables for containers
+Common environment variables for init containers and node container
+Based on cosmosfullnode.yaml pod template
 */}}
 {{- define "blch-node.containerEnv" -}}
-- name: HOME_DIR
-  value: {{ .Values.blch.homeDir }}
+{{- $homeDir := .Values.blch.homeDir -}}
+{{- $home := printf "/home/operator/%s" $homeDir -}}
+- name: HOME
+  value: {{ $home | quote }}
+- name: CHAIN_HOME
+  value: {{ $home | quote }}
+- name: GENESIS_FILE
+  value: {{ printf "%s/config/genesis.json" $home | quote }}
+- name: ADDRBOOK_FILE
+  value: {{ printf "%s/config/addrbook.json" $home | quote }}
+- name: CONFIG_DIR
+  value: {{ printf "%s/config" $home | quote }}
 - name: DATA_DIR
-  value: {{ .Values.blch.dataDir }}
+    value: {{ printf "%s/data" $home | quote }}
+{{- with .Values.blch.id }}
 - name: CHAIN_ID
-  value: {{ .Values.blch.id | quote }}
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.blch.network }}
 - name: NETWORK
-  value: {{ .Values.blch.network | quote }}
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.blch.binary }}
 - name: BINARY
-  value: {{ .Values.blch.binary | quote }}
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 
 {{/*
-Common volume mounts
+Volume mounts for init containers
+Based on cosmosfullnode.yaml pod template
 */}}
-{{- define "blch-node.containerVolumeMounts" -}}
-- mountPath: {{ .Values.home }}/{{ .Values.chainHome }}
-  name: vol-chain-home
+{{- define "blch-node.initContainerVolumeMounts" -}}
+{{- $homeDir := .Values.blch.homeDir -}}
+{{- $home := printf "/home/operator/%s" $homeDir -}}
+- mountPath: {{ printf "%s/data" $home }}
+  name: vol-chain-home-data
+- mountPath: {{ printf "%s/config" $home }}
+  name: vol-chain-home-config
 - mountPath: /tmp
   name: vol-system-tmp
-- mountPath: {{ .Values.home }}/.tmp
+- mountPath: {{ printf "%s/.tmp" $home }}
   name: vol-tmp
-- mountPath: {{ .Values.home }}/.config
+- mountPath: {{ printf "%s/.config" $home }}
   name: vol-config
+{{- end }}
+
+{{/*
+Volume mounts for node container
+Based on cosmosfullnode.yaml pod template
+*/}}
+{{- define "blch-node.nodeContainerVolumeMounts" -}}
+{{- $homeDir := .Values.blch.homeDir -}}
+{{- $home := printf "/home/operator/%s" $homeDir -}}
+- mountPath: {{ printf "%s/data" $home }}
+  name: vol-chain-home-data
+- mountPath: {{ printf "%s/config" $home }}
+  name: vol-chain-home-config
+- mountPath: /tmp
+  name: vol-system-tmp
 {{- end }}
 
 {{/*

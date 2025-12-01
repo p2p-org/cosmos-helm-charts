@@ -6,11 +6,12 @@ kind: Service
 metadata:
   name: {{ $.Release.Name }}-sentry-{{ $i }}
   labels:
-{{ include "cosmos-operator-rpc-node.commonLabels" $ | nindent 4 }}
+{{ include "blch-node.labels" $ | nindent 4 }}
 spec:
   clusterIP: None
   selector:
-    app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+    app.kubernetes.io/name: {{ $.Release.Name }}
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-{{ $i }}
   ports:
     - protocol: TCP
       port: 1234
@@ -24,6 +25,6 @@ spec:
       port: 1317
       targetPort: 1317
       name: rest
-  publishNotReadyAddresses: true      
+  publishNotReadyAddresses: true
 {{- end }}
 {{- end }}

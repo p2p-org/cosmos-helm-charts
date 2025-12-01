@@ -4,7 +4,7 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-public-snapshot
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+  {{ include "blch-node.labels" . | nindent 4 }}
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
@@ -27,4 +27,4 @@ spec:
   - hosts:
     - {{ .Values.blch.name }}-{{ .Values.blch.network }}-{{ .Values.blch.nodeType }}-snapshots.{{ .Values.endpointsBaseDomain }}
     secretName: {{ .Release.Name }}-public-snapshot-tls
-{{- end -}}
+{{- end }}

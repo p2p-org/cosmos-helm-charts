@@ -1,0 +1,264 @@
+# Example values for blch-node chart
+# This is a complete example configuration for deploying a Cosmos node
+
+replicas: 1
+maxUnavailable: 1
+image: "cosmos/node"
+imageTag: "latest"
+# Toolkit image used for init containers and healthcheck sidecar
+toolkitImage: "cosmos/toolkit"
+toolkitImageTag: "latest"
+imagePullPolicy: "Always"
+imagePullSecrets: "regcred"
+storage:
+  data: "300Gi"
+  config: "5Gi"
+storageClassName: "standard"
+nodeSelectorKey: "cosmos-node"
+affinityAdditionalMatches:
+  - key: "node-type"
+    operator: In
+    values:
+      - "rpc"
+nodeSelectorLabel:
+  node-role: "cosmos-rpc"
+podAntiAffinityPerNode: true
+volumeRetainPolicy: "Retain"
+
+resources:
+  limits:
+    cpu: 4
+    memory: 8Gi
+  requests:
+    cpu: 2
+    memory: 4Gi
+
+# Optional additional init containers
+# initContainers:
+#   custom-init:
+#     image: busybox
+#     command: ['sh', '-c', 'echo "Custom initialization" && sleep 5']
+
+# Labels to be applied to all resources
+labels:
+  team: "cosmos"
+  environment: "production"
+
+# Node annotations
+nodeAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "26660"
+
+priorityClassName: "high-priority"
+
+# Sidecar container configuration
+sidecar:
+  enabled: false
+  name: "sidecar"
+  image: "nginx:alpine"
+  imagePullPolicy: "IfNotPresent"
+  command: ["/bin/sh"]
+  args: []
+  ports: []
+  configMaps: []
+  env: []
+  envFrom: []
+  resources: {}
+
+service:
+  publishSvcDuringSync: true
+  type: ClusterIP
+  ports:
+    p2p:
+      port: 26656
+      containerPort: 26656
+      protocol: TCP
+    rpc:
+      port: 26657
+      containerPort: 26657
+      protocol: TCP
+    grpc:
+      port: 9090
+      containerPort: 9090
+      protocol: TCP
+    rest:
+      port: 1317
+      containerPort: 1317
+      protocol: TCP
+    ws:
+      port: 8546
+      containerPort: 8546
+      protocol: TCP
+    prometheus:
+      port: 9091
+      containerPort: 9091
+      protocol: TCP
+
+## Chain Specs
+blch:
+  # Node type: "full", "archive", or "sentry"
+  nodeType: "full"
+  id: "cosmoshub-4"
+  network: "cosmos"
+  name: "cosmoshub"
+  binary: "gaiad"
+  skipInvariants: true
+
+  # Provide either genesisURL or snapshotURL (or both - snapshot will be used if both provided)
+  genesisURL: "https://github.com/cosmos/mainnet/raw/master/genesis.cosmoshub-4.json.gz"
+  snapshotURL: "https://snapshots.cosmos.network/cosmoshub-4-pruned.tar.lz4"
+
+  minGasPrice: "0.025uatom"
+
+  # Optional app configuration overrides
+  appOverrides: |
+    minimum-gas-prices = "0.025uatom"
+    pruning = "custom"
+
+  # Address book URL for peer discovery
+  addrbookURL: "https://github.com/cosmos/mainnet/raw/master/cosmoshub-4/addrbook.json"
+
+  # Network configuration
+  config:
+    seeds: "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:14956"
+    peers: "d72b3011ed46d783e369fdf8ae2055b99a1e5074@65.21.34.226:26656"
+    overrides: |
+      [p2p]
+      max_num_inbound_peers = 100
+      max_num_outbound_peers = 50
+      [tx_index]
+      indexer = "kv"
+    p2pDNSNameEnabled: false
+
+  # Additional start arguments
+  additionalStartArgs: "--x-crisis-skip-assert-invariants"
+
+  # Home directory configuration
+  homeDir: "/home/operator"
+  chainHome: "/home/operator/cosmos"
+
+  # Pruning configuration
+  pruning:
+    strategy: "custom"
+    interval: 10
+    keepEvery: 0
+    keepRecent: 100
+    minRetainBlocks: 100
+
+# Healthcheck configuration
+healthcheck:
+  startupProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 30
+    successThreshold: 1
+  readinessProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  resources:
+    requests:
+      cpu: 5m
+      memory: 16Mi
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  publicRpcEndpoint: "https://cosmos-rpc.polkachu.com"
+  alerts:
+    enabled: true
+    growingBlockHeightDifference: 25
+    maximumBlockHeightDifference: 100
+    maximumPeerDropPercentage: 25
+
+# Public snapshot publishing (optional)
+publishSnapshot:
+  enabled: false
+  cronJobSchedule: "0 */12 * * *"
+  pathPrefix: "snapshots"
+  baseDomain: "snapshots.example.com"
+
+# Basic Auth for RPC endpoints
+basicAuth:
+  enabled: false
+
+# Base domain for all endpoints
+endpointsBaseDomain: "cosmos.example.com"
+
+# Gateway API Configuration (use Gateway API instead of Ingress)
+useGatewayAPI: false
+gateway:
+  name: "main-gateway"
+  namespace: "gateway-system"
+  listeners: ["https-listener"]
+
+# Endpoints configuration
+endpoints:
+  rpc:
+    enabled: true
+    servicePort: 26657
+    path: "/"
+    ingressName: "rpc-ingress"
+    host: "rpc.cosmos.example.com"
+    tlsHost: "rpc.cosmos.example.com"
+    tlsSecretName: "rpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+  grpc:
+    enabled: true
+    servicePort: 9090
+    path: "/"
+    ingressName: "grpc-ingress"
+    host: "grpc.cosmos.example.com"
+    tlsHost: "grpc.cosmos.example.com"
+    tlsSecretName: "grpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/grpc-backend: "true"
+
+  ws:
+    enabled: true
+    servicePort: 8546
+    path: "/"
+    ingressName: "ws-ingress"
+    host: "ws.cosmos.example.com"
+    tlsHost: "ws.cosmos.example.com"
+    tlsSecretName: "ws-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+
+  ws-rpc:
+    enabled: true
+    servicePort: 26657
+    path: "/websocket"
+    ingressName: "ws-rpc-ingress"
+    host: "ws-rpc.cosmos.example.com"
+    tlsHost: "ws-rpc.cosmos.example.com"
+    tlsSecretName: "ws-rpc-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+
+  rest:
+    enabled: true
+    servicePort: 1317
+    path: "/"
+    ingressName: "rest-ingress"
+    host: "rest.cosmos.example.com"
+    tlsHost: "rest.cosmos.example.com"
+    tlsSecretName: "rest-tls-secret"
+    additionalIngressAnnotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+

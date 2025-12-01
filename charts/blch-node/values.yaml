@@ -3,10 +3,17 @@
 ## Pod Specs
 image: ""
 imageTag: ""
+# Toolkit image used for init containers and healthcheck sidecar
+toolkitImage: ""
+toolkitImageTag: ""
+# Image pull policy for all containers (defaults to "Always" if not set)
+imagePullPolicy: "Always"
 imagePullSecrets: ""
-replicas: 1
+replicas: ""
 maxUnavailable: ""
-storage: ""
+storage:
+  data: "300Gi"
+  config: "5Gi"
 storageClassName: ""
 # Key to be used for node affinity
 nodeSelectorKey: ""
@@ -21,34 +28,6 @@ podAntiAffinityPerNode: true
 volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
-
-# For sentry nodes only
-# cosmosExporter:
-#   enabled: false
-#   image:
-#   tag:
-#   # Optional: Override the network name for the cosmos-exporter. If not set, defaults to "{{ .Values.blch.protocol }}-{{ .Values.blch.network }}"
-#   network: ""
-#   # Optional: Alerting validators list for cosmos-exporter
-#   alertingValidators: []
-#   # Optional: Network configuration overrides for cosmos-exporter
-#   # This will be merged with defaults, so you only need to specify what you want to change
-#   networkConfig:
-#     # Example: Enable bank module and add addresses
-#     # tendermint:
-#     #   bank:
-#     #     enabled: true
-#     #     addresses:
-#     #       - "cosmos1..."
-#     #       - "cosmos2..."
-#     # Example: Disable staking module
-#     # tendermint:
-#     #   staking:
-#     #     enabled: false
-#     # Example: Change interval for cometbft validators
-#     # cometbft:
-#     #   validators:
-#     #     interval: 60
 
 # resources: {}
 
@@ -97,8 +76,8 @@ sidecar:
   env: []
   envFrom: []
   resources: {}
-# Common labels to be applied to all resources
-# commonLabels:
+# Labels to be applied to all resources
+# labels:
 #   team: "cosmos"
 #   environment: "production"
 
@@ -151,6 +130,10 @@ blch:
   name: ""
   binary: ""
   skipInvariants: true
+  # Optional halt height - node will halt at this block height
+  # haltHeight: ""
+  # Optional halt time - node will halt at this time (RFC3339 format, e.g., "2006-01-02T15:04:05Z")
+  # haltTime: ""
   # Provide either a genesisURL or snapshotURL for the syncing process
   # genesisURL: ""
   # snapshotURL: ""
@@ -174,19 +157,34 @@ blch:
     # This will set the externalAddress to the DNS name and add an annotation to the external service for external-dns to manage the DNS record
     p2pDNSNameEnabled: false
   # additionalStartArgs: ""
-  # homeDir: ""
-
-# RBAC for the cosmos-operator to manage the RPC node, use when running the operator in namespace-scoped mode, otherwise set to false.
-cosmosOperatorRBAC:
-  enabled: false
-  namespace: "cosmos-operator-system"
-
-  # Pruning configuration, if not set, default strategy will be used.
+  # Home directory relative to /home/operator/ (defaults to "cosmos")
+  homeDir: "cosmos"
+  # Pruning configuration
   pruning:
     strategy: "custom"
     interval: 10
     keepEvery: 0
     keepRecent: 100
+    minRetainBlocks: 100
+
+# Healthcheck configuration
+healthcheck:
+  startupProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 30
+    successThreshold: 1
+  readinessProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  resources:
+    requests:
+      cpu: 5m
+      memory: 16Mi
 
 # Requires kube-prometheus-stack to be installed, along with blackbox-exporter and prometheus-json-exporter. If not available, set to false.
 # JSON exporter is used to monitor the latest block height, and requires the following configuration during setup:
@@ -245,6 +243,7 @@ gateway:
 #   tlsSecretName: (Optional) The name of the TLS secret.
 #   additionalIngressAnnotations: (Optional) Additional annotations for the ingress. For example, you can specify timeouts and cors.
 # Note that some endpoints might need additional overrides to work properly, you can define them as appOverrides under the blch specs.
+# Note: When useGatewayAPI is true, HTTPRoute is used for all endpoints including GRPC (since GRPC is built on HTTP/2).
 endpoints:
   rpc:
     enabled: true
@@ -267,3 +266,27 @@ endpoints:
     enabled: false
     servicePort: 1317
     additionalIngressAnnotations: {}
+
+# Cosmos Exporter configuration
+# Set enabled to false to disable the cosmos-exporter subchart
+cosmos-exporter:
+  enabled: false
+#   image:
+#     repository: ghcr.io/p2p-org/rcosmos-exporter
+#     tag: ""
+# config:
+#   general:
+#     # Need to match the network name in the cosmos-exporter network mode if you are running it
+#     network: ""
+#     alerting:
+#       validators: []
+#   node:
+#     client: ""
+#     tendermint:
+#       nodeInfo:
+#         enabled: true
+#         interval: 30
+#     cometbft:
+#       status:
+#         enabled: true
+#         interval: 30

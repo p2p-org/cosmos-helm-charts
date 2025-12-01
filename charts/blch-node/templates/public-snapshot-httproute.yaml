@@ -1,11 +1,11 @@
-{{- if and .Values.publishSnapshot.enabled .Values.useGatewayAPI -}}
+{{- if and .Values.publishSnapshot.enabled .Values.useGatewayAPI (and .Values.gateway.name .Values.gateway.namespace .Values.gateway.listeners) -}}
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
   name: {{ .Release.Name }}-public-snapshot
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+  {{ include "blch-node.labels" . | nindent 4 }}
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
@@ -33,4 +33,4 @@ spec:
       port: 443
       kind: Service
       weight: 1
-{{- end -}} 
+{{- end }}

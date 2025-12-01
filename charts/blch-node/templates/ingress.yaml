@@ -1,6 +1,21 @@
 {{- if not .Values.useGatewayAPI }}
 {{- range $key, $val := .Values.endpoints }}
-{{- if $val.enabled }}
+{{- $enabled := default true $val.enabled }}
+{{- if $enabled }}
+{{- $servicePort := $val.servicePort }}
+{{- if not $servicePort }}
+{{- if eq $key "rpc" }}
+{{- $servicePort = $.Values.service.ports.rpc.port }}
+{{- else if eq $key "grpc" }}
+{{- $servicePort = $.Values.service.ports.grpc.port }}
+{{- else if eq $key "ws" }}
+{{- $servicePort = $.Values.service.ports.ws.port }}
+{{- else if eq $key "rest" }}
+{{- $servicePort = $.Values.service.ports.rest.port }}
+{{- else }}
+{{- $servicePort = $.Values.service.ports.rpc.port }}
+{{- end }}
+{{- end }}
 {{- $name := printf "%s-%s" $.Release.Name $key }}
 {{- $host := include "host" (dict "context" $ "endpointName" $key) }}
 {{- $tlsSecretName := printf "%s-%s" $host "tls" }}
@@ -10,14 +25,18 @@ kind: Ingress
 metadata:
   name: {{ default $name $val.ingressName }}-nlb
   labels:
-{{ include "blch-node.commonLabels" $ | nindent 4 }}
+{{ include "blch-node.labels" $ | nindent 4 }}
+  {{- if or $val.additionalIngressAnnotations $.Values.basicAuth.enabled }}
   annotations:
-    {{ toYaml $val.additionalIngressAnnotations | nindent 4 }}
+    {{- with $val.additionalIngressAnnotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
     {{- if $.Values.basicAuth.enabled }}
     nginx.ingress.kubernetes.io/auth-type: "basic"
     nginx.ingress.kubernetes.io/auth-secret: "{{ $.Release.Name }}-basic-auth"
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required - Login"
     {{- end }}
+  {{- end }}
 spec:
   ingressClassName: nginx-nlb
   rules:
@@ -32,7 +51,7 @@ spec:
               service:
                 name: {{ $.Release.Name }}-rpc
                 port:
-                  number: {{ .servicePort }}
+                  number: {{ default $servicePort .servicePort }}
         {{- end }}
         {{- else }}
           - path: {{ default "/" $val.path }}
@@ -41,7 +60,7 @@ spec:
               service:
                 name: {{ $.Release.Name }}-rpc
                 port:
-                  number: {{ $val.servicePort }}
+                  number: {{ $servicePort }}
         {{- end }}
   tls:
   - hosts:

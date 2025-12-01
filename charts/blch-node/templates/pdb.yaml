@@ -5,7 +5,7 @@ kind: PodDisruptionBudget
 metadata:
   name: {{ .Release.Name }}-pdb
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
 spec:
   minAvailable: 1
   selector:

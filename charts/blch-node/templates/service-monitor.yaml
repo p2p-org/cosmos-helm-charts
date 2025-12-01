@@ -5,7 +5,7 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-metrics
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
 spec:
   selector:
     app.kubernetes.io/name: {{ .Release.Name }}
@@ -19,7 +19,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-sdk-metrics
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -32,13 +32,14 @@ spec:
     - port: metrics
       interval: 15s
       path: /metrics
+{{- if .Values.monitoring.publicRpcEndpoint }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-external-latest-height
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -65,13 +66,14 @@ spec:
     - sourceLabels: []
       targetLabel: rpc_endpoint
       replacement: {{ .Values.monitoring.publicRpcEndpoint }}
+{{- end }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-internal-latest-height
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
@@ -104,7 +106,7 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-rpc-endpoint
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+{{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:

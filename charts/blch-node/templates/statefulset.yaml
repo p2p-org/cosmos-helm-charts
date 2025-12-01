@@ -1,0 +1,351 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "blch-node.labels" . | nindent 4 }}
+  {{- if .Values.nodeAnnotations }}
+  annotations:
+    {{- toYaml .Values.nodeAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  serviceName: {{ .Release.Name }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "blch-node.labels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.sidecar.configMaps }}
+        checksum/sidecar-config: {{ include (print $.Template.BasePath "/sidecar-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if .Values.nodeAnnotations }}
+        {{- toYaml .Values.nodeAnnotations | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "blch-node.labels" . | nindent 8 }}
+    spec:
+      imagePullPolicy: "Always"
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      initContainers:
+      - name: clean-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["sh"]
+        args:
+        - -c
+        - rm -rf "$HOME/.tmp/*"
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
+
+      # Chain init - initializes the chain
+      - name: chain-init
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/chain-init.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
+
+      # Genesis init - downloads genesis file
+      {{- with .Values.blch.genesisURL }}
+      - name: genesis-init
+        image: {{ $.Values.toolkitImage }}:{{ $.Values.toolkitImageTag }}
+        imagePullPolicy: {{ $.Values.imagePullPolicy }}
+        command: ["/scripts/genesis-init.sh"]
+        args:
+        - {{ . | quote }}
+        env:
+        {{- include "blch-node.containerEnv" $ | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
+      {{- end }}
+
+      # Address book init - downloads address book
+      {{- with .Values.blch.addrbookURL }}
+      - name: addrbook-init
+        image: {{ $.Values.toolkitImage }}:{{ $.Values.toolkitImageTag }}
+        imagePullPolicy: {{ $.Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/addrbook-init.sh"]
+        args:
+        - {{ . | quote }}
+        env:
+        {{- include "blch-node.containerEnv" $ | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
+        workingDir: /home/operator
+        resources: {}
+      {{- end }}
+
+      # Config merge - merges configuration files
+      - name: config-merge
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/config-merge.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
+
+      # Snapshot restore - downloads and extracts snapshot
+      {{- with .Values.blch.snapshotURL }}
+      - name: snapshot-restore
+        image: {{ $.Values.toolkitImage }}:{{ $.Values.toolkitImageTag }}
+        imagePullPolicy: {{ $.Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/snapshot-restore.sh"]
+        args:
+        - {{ . | quote }}
+        env:
+        {{- include "blch-node.containerEnv" $ | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
+      {{- end }}
+      {{- with .Values.additionalInitContainers }}
+        {{- range $key, $value := . }}
+        - name: "{{ $key }}"
+          {{ toYaml $value | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      containers:
+      - name: node
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        {{- with .Values.resources }}
+        resources:
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
+        command: ["sh"]
+        args:
+        - -c
+        - |
+          {{- if eq .Values.blch.nodeType "sentry" }}
+          sleep 10
+          {{- end }}
+          {{ .Values.blch.binary }} start --home "$CHAIN_HOME"\
+          {{- if .Values.blch.skipInvariants }}
+            --x-crisis-skip-assert-invariants\
+          {{- end }}
+          {{- with .Values.blch.haltHeight }}
+            --halt-height={{ . }}\
+          {{- end }}
+          {{- with .Values.blch.haltTime }}
+            --halt-time={{ . }}\
+          {{- end }}
+          {{- with .Values.blch.additionalStartArgs }}
+            {{ . }}
+          {{- end }}
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        ports:
+        - name: p2p
+          containerPort: {{ .Values.service.ports.p2p.containerPort }}
+          protocol: {{ .Values.service.ports.p2p.protocol }}
+        - name: rpc
+          containerPort: {{ .Values.service.ports.rpc.containerPort }}
+          protocol: {{ .Values.service.ports.rpc.protocol }}
+        - name: grpc
+          containerPort: {{ .Values.service.ports.grpc.containerPort }}
+          protocol: {{ .Values.service.ports.grpc.protocol }}
+        - name: rest
+          containerPort: {{ .Values.service.ports.rest.containerPort }}
+          protocol: {{ .Values.service.ports.rest.protocol }}
+        - name: ws
+          containerPort: {{ .Values.service.ports.ws.containerPort }}
+          protocol: {{ .Values.service.ports.ws.protocol }}
+        volumeMounts:
+        {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
+        {{- if .Values.sidecar.configMaps }}
+        {{- range .Values.sidecar.configMaps }}
+        {{- if .enabled }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          {{- with .subPath }}
+          subPath: {{ . }}
+          {{- end }}
+          {{- if .readOnly }}
+          readOnly: {{ .readOnly }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      - name: healthcheck
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/keep-running.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
+        startupProbe:
+          exec:
+            command: ["/scripts/rpc-health-check.sh"]
+          initialDelaySeconds: {{ .Values.healthcheck.startupProbe.initialDelaySeconds | quote }}
+          periodSeconds: {{ .Values.healthcheck.startupProbe.periodSeconds | quote }}
+          timeoutSeconds: {{ .Values.healthcheck.startupProbe.timeoutSeconds | quote }}
+          failureThreshold: {{ .Values.healthcheck.startupProbe.failureThreshold | quote }}
+          successThreshold: {{ .Values.healthcheck.startupProbe.successThreshold | quote }}
+        readinessProbe:
+          exec:
+            command: ["/scripts/rpc-health-check.sh"]
+          initialDelaySeconds: {{ .Values.healthcheck.readinessProbe.initialDelaySeconds | quote }}
+          periodSeconds: {{ .Values.healthcheck.readinessProbe.periodSeconds | quote }}
+          timeoutSeconds: {{ .Values.healthcheck.readinessProbe.timeoutSeconds | quote }}
+          failureThreshold: {{ .Values.healthcheck.readinessProbe.failureThreshold | quote }}
+          successThreshold: {{ .Values.healthcheck.readinessProbe.successThreshold | quote }}
+        {{- with .Values.healthcheck.resources }}
+        resources:
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
+      {{- if .Values.sidecar.enabled }}
+      - name: {{ .Values.sidecar.name }}
+        image: {{ .Values.sidecar.image }}
+        {{- with .Values.sidecar.command }}
+        {{- if kindIs "slice" . }}
+        command: {{ toYaml . | nindent 8 }}
+        {{- else }}
+        command: {{ . }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.sidecar.args }}
+        {{- if kindIs "slice" . }}
+        args: {{ toYaml . | nindent 8 }}
+        {{- else }}
+        args: {{ . }}
+        {{- end }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.sidecar.imagePullPolicy }}
+        {{- with .Values.sidecar.resources }}
+        resources:
+          {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sidecar.ports }}
+        ports:
+          {{- range .Values.sidecar.ports }}
+          - name: {{ .name }}
+            containerPort: {{ .port }}
+            protocol: {{ .protocol | default "TCP" }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.sidecar.env }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.sidecar.envFrom }}
+        envFrom:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.sidecar.configMaps }}
+        volumeMounts:
+          {{- range .Values.sidecar.configMaps }}
+          {{- if .enabled }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            {{- with .subPath }}
+            subPath: {{ . }}
+            {{- end }}
+            {{- if .readOnly }}
+            readOnly: {{ .readOnly }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.nodeSelectorLabel }}
+      nodeSelector:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.nodeSelectorKey (ne .Values.nodeSelectorKey "") }}
+      affinity:
+      {{- if .Values.podAntiAffinityPerNode }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ .Release.Name }}
+            topologyKey: "kubernetes.io/hostname"
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ .Release.Name }}
+            topologyKey: "topology.kubernetes.io/zone"
+      {{- end }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              {{- with .Values.affinityAdditionalMatches }}
+              {{ toYaml . | nindent 14 }}
+              {{- end }}
+              - key: blch
+                operator: In
+                values:
+                - "true"
+              - key: {{ .Values.nodeSelectorKey }}
+                operator: In
+                values:
+                - "true"
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      volumes:
+      - name: vol-system-tmp
+        emptyDir: {}
+      - name: vol-tmp
+        emptyDir: {}
+      - name: vol-config
+        configMap:
+          name: {{ .Release.Name }}-config-overlay
+          defaultMode: 420
+          items:
+          - key: config-overlay.toml
+            path: config-overlay.toml
+          - key: app-overlay.toml
+            path: app-overlay.toml
+      {{- if .Values.sidecar.configMaps }}
+        {{- range .Values.sidecar.configMaps }}
+        {{- if .enabled }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .name }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: vol-chain-home-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.storage.data }}
+      {{- with .Values.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+  - metadata:
+      name: vol-chain-home-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.storage.config }}
+      {{- with .Values.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}

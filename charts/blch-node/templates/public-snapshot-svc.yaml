@@ -4,11 +4,11 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-public-snapshot
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
+  {{ include "blch-node.labels" . | nindent 4 }}
 spec:
    type: ExternalName
    externalName: {{ .Values.publishSnapshot.baseDomain }}
    ports:
      - port: 443
        targetPort: 443
-{{- end -}}
+{{- end }}

@@ -4,3 +4,10 @@ description: A Helm chart for deploying a blockchain node
 type: application
 version: 0.0.0-development
 appVersion: "1.0"
+
+dependencies:
+  - name: cosmos-exporter
+    version: v1.30.3
+    repository: "https://p2p-org.github.io/cosmos-helm-charts/"
+    alias: cosmos-exporter
+    condition: cosmos-exporter.enabled

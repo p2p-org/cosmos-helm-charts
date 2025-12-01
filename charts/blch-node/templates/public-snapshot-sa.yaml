@@ -4,5 +4,5 @@ kind: ServiceAccount
 metadata:
   name: snapshots-bucket-{{ .Release.Name }}
   labels:
-{{ include "blch-node.commonLabels" . | nindent 4 }}
-{{- end -}}
+  {{ include "blch-node.labels" . | nindent 4 }}
+{{- end }}
