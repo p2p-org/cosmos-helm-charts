@@ -19,6 +19,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/scripts: {{ include (print $.Template.BasePath "/configmap-scripts.yaml") . | sha256sum }}
         {{- if .Values.sidecar.configMaps }}
         checksum/sidecar-config: {{ include (print $.Template.BasePath "/sidecar-configmap.yaml") . | sha256sum }}
         {{- end }}
@@ -49,13 +50,7 @@ spec:
       - name: chain-init
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
-        command: ["sh"]
-        args:
-        - -c
-        - |
-          [ ! -d "$CHAIN_HOME/data" ] && echo "Initializing chain..." && $CHAIN_BINARY init --chain-id $CHAIN_ID $NODE_NAME --home "$CHAIN_HOME" || echo "Skipping chain init; already initialized."
-          echo "Initializing into tmp dir for downstream processing..."
-          $CHAIN_BINARY init --chain-id $CHAIN_ID $NODE_NAME --home "$HOME/.tmp"
+        command: ["/scripts/chain-init.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         volumeMounts:
@@ -116,7 +111,7 @@ spec:
         volumeMounts:
         {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
       {{- end }}
-      {{- if .Values.blockRollback.enabled }}
+      {{- if .Values.blockRollbackInitContainer.enabled }}
       # Block rollback init container - rolls back blockchain state
       - name: block-rollback
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
@@ -131,7 +126,7 @@ spec:
         volumeMounts:
         {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
       {{- end }}
-      {{- if .Values.debug.enabled }}
+      {{- if .Values.debugInitContainer.enabled }}
       # Debug init container - keeps container running for debugging
       - name: debug-init
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
@@ -241,6 +236,17 @@ spec:
         resources:
           {{ toYaml . | nindent 10 }}
         {{- end }}
+      {{- if .Values.debugSidecar.enabled }}
+      # Debug sidecar container - keeps container running for debugging
+      - name: debug-sidecar
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["/scripts/keep-running.sh"]
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
+      {{- end }}
       {{- if .Values.sidecar.enabled }}
       - name: {{ .Values.sidecar.name }}
         image: {{ .Values.sidecar.image }}
@@ -356,6 +362,10 @@ spec:
             path: config-overlay.toml
           - key: app-overlay.toml
             path: app-overlay.toml
+      - name: vol-scripts
+        configMap:
+          name: {{ .Release.Name }}-scripts
+          defaultMode: 0755
       {{- if .Values.sidecar.configMaps }}
         {{- range .Values.sidecar.configMaps }}
         {{- if .enabled }}

@@ -28,9 +28,11 @@ podAntiAffinityPerNode: true
 volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
-blockRollback:
+blockRollbackInitContainer:
   enabled: false
-debug:
+debugInitContainer:
+  enabled: false
+debugSidecar:
   enabled: false
 # resources: {}
 
@@ -153,12 +155,10 @@ blch:
   config:
     # peers: ""
     # seeds: ""
-    overrides: |-
-      [tx_index]
-      indexer = "kv"
-    # Enable DNS name for P2P External Service
-    # This will set the externalAddress to the DNS name and add an annotation to the external service for external-dns to manage the DNS record
-    p2pDNSNameEnabled: false
+    # Make sure to use the relevant title section for the overrides, e.g. [p2p], [tx_index], [rpc], etc.
+    # overrides: |-
+    #   [tx_index]
+    #   indexer = "kv"
   # additionalStartArgs: ""
   # Home directory relative to /home/operator/ (defaults to "cosmos")
   homeDir: "cosmos"

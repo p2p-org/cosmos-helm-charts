@@ -65,6 +65,9 @@ Based on cosmosfullnode.yaml pod template
   name: vol-tmp
 - mountPath: {{ printf "%s/.config" $home }}
   name: vol-config
+- mountPath: /scripts
+  name: vol-scripts
+  readOnly: true
 {{- end }}
 
 {{/*
@@ -80,6 +83,9 @@ Based on cosmosfullnode.yaml pod template
   name: config
 - mountPath: /tmp
   name: vol-system-tmp
+- mountPath: /scripts
+  name: vol-scripts
+  readOnly: true
 {{- end }}
 
 {{/*

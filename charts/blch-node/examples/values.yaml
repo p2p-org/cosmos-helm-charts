@@ -128,8 +128,6 @@ blch:
       max_num_outbound_peers = 50
       [tx_index]
       indexer = "kv"
-    p2pDNSNameEnabled: false
-
   # Additional start arguments
   additionalStartArgs: "--x-crisis-skip-assert-invariants"
 
