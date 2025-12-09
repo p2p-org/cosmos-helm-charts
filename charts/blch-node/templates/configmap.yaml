@@ -10,6 +10,7 @@ data:
     {{- if eq .Values.blch.nodeType "sentry" }}
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
+    {{- if .Values.blch.config }}
     {{- if .Values.blch.config.seeds }}
     seeds = {{ .Values.blch.config.seeds | quote }}
     {{- end }}
@@ -22,6 +23,7 @@ data:
     {{- end }}
     {{- if .Values.blch.config.overrides }}
     {{- .Values.blch.config.overrides | toYaml | nindent 4 }}
+    {{- end }}
     {{- end }}
   app-overlay.toml: |
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
