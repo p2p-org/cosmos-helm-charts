@@ -10,29 +10,29 @@ data:
     {{- if eq .Values.blch.nodeType "sentry" }}
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
-    {{- with .Values.blch.config.seeds }}
-    seeds = {{ . | quote }}
+    {{- if .Values.blch.config.seeds }}
+    seeds = {{ .Values.blch.config.seeds | quote }}
     {{- end }}
-    {{- with .Values.blch.config.peers }}
-    peers = {{ . | quote }}
+    {{- if .Values.blch.config.peers }}
+    peers = {{ .Values.blch.config.peers | quote }}
     {{- end }}
     {{- if .Values.blch.config.kvIndexerEnabled }}
     [tx_index]
     indexer = "kv"
     {{- end }}
-    {{- with .Values.blch.config.overrides }}
-    {{- . | nindent 4 }}
+    {{- if .Values.blch.config.overrides }}
+    {{- .Values.blch.config.overrides | toYaml | nindent 4 }}
     {{- end }}
   app-overlay.toml: |
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
-    {{- with .Values.blch.pruning }}
-    pruning-strategy = {{ .strategy | default "custom" | quote }}
-    pruning-keep-recent = {{ .keepRecent | default 100 | quote }}
-    pruning-interval = {{ .interval | default 10 | quote }}
-    {{- with .keepEvery }}
-    pruning-keep-every = {{ . | quote }}
+    {{- if .Values.blch.pruning }}
+    pruning-strategy = {{ .Values.blch.pruning.strategy | default "custom" | quote }}
+    pruning-keep-recent = {{ .Values.blch.pruning.keepRecent | default 100 | quote }}
+    pruning-interval = {{ .Values.blch.pruning.interval | default 10 | quote }}
+    {{- if .Values.blch.pruning.keepEvery }}
+    pruning-keep-every = {{ .Values.blch.pruning.keepEvery | quote }}
     {{- end }}
     {{- end }}
-    {{- with .Values.blch.appOverrides }}
-    {{- . | nindent 4 }}
+    {{- if .Values.blch.appOverrides }}
+    {{- .Values.blch.appOverrides | toYaml | nindent 4 }}
     {{- end }}

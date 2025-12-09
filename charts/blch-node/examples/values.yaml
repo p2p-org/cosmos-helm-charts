@@ -10,9 +10,7 @@ toolkitImage: "cosmos/toolkit"
 toolkitImageTag: "latest"
 imagePullPolicy: "Always"
 imagePullSecrets: "regcred"
-storage:
-  data: "300Gi"
-  config: "5Gi"
+storage: "300Gi"
 storageClassName: "standard"
 nodeSelectorKey: "cosmos-node"
 affinityAdditionalMatches:

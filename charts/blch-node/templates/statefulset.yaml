@@ -381,7 +381,7 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: {{ .Values.storage.data }}
+          storage: {{ .Values.storage }}
       {{- with .Values.storageClassName }}
       storageClassName: {{ . }}
       {{- end }}
@@ -391,7 +391,7 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: {{ .Values.storage.config }}
+          storage: 50Gi
       {{- with .Values.storageClassName }}
       storageClassName: {{ . }}
       {{- end }}

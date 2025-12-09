@@ -160,8 +160,7 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | sidecar.name | string | `"sidecar"` |  |
 | sidecar.ports | list | `[]` |  |
 | sidecar.resources | object | `{}` |  |
-| storage.config | string | `"5Gi"` |  |
-| storage.data | string | `"300Gi"` |  |
+| storage | string | `"300Gi"` |  |
 | storageClassName | string | `""` |  |
 | tolerations | list | `[]` |  |
 | toolkitImage | string | `""` |  |

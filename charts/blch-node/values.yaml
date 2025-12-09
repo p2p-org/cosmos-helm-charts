@@ -11,9 +11,7 @@ imagePullPolicy: "Always"
 imagePullSecrets: ""
 replicas: ""
 maxUnavailable: ""
-storage:
-  data: "300Gi"
-  config: "5Gi"
+storage: "300Gi"
 storageClassName: ""
 # Key to be used for node affinity
 nodeSelectorKey: ""
