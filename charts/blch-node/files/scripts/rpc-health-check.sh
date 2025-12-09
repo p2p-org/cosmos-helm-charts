@@ -4,12 +4,10 @@
 # This script checks the health of a node by verifying:
 # 1. RPC endpoint is responding
 # 2. Node is synced (not catching up)
-# 3. Node is processing new blocks (not stuck)
 #
 # Environment variables:
 #   RPC_URL - RPC endpoint URL (default: http://localhost)
 #   RPC_PORT - RPC port (default: 26657)
-#   MAX_BLOCK_AGE - Maximum age of latest block in seconds (default: 180 = 3 minutes)
 #
 # Exit codes:
 #   0 - Node is healthy and synced
@@ -21,12 +19,11 @@
 #   - Do NOT use as livenessProbe: Would restart pod during catch-up, preventing sync
 #
 
-set -eu
+set -u
 
 # Default configuration
 RPC_URL="${RPC_URL:-http://localhost}"
 RPC_PORT="${RPC_PORT:-26657}"
-MAX_BLOCK_AGE="${MAX_BLOCK_AGE:-180}"  # 3 minutes default
 
 # Construct full RPC endpoint
 RPC_ENDPOINT="${RPC_URL}:${RPC_PORT}"
@@ -36,7 +33,7 @@ log() {
 }
 
 log_error() {
-    echo "[WARNING] $*" >&2
+    echo "[WARNING] $*"
 }
 
 log_success() {
@@ -67,38 +64,5 @@ if ! echo "$response" | grep -q '"result"'; then
     exit 1
 fi
 
-# Check if node is processing new blocks (not stuck)
-# Extract latest_block_time from JSON response
-# Format is typically: "latest_block_time": "2024-01-01T12:00:00Z"
-block_time=$(echo "$response" | grep -o '"latest_block_time":"[^"]*"' | cut -d'"' -f4)
-
-if [ -z "$block_time" ]; then
-    log_error "Could not extract latest_block_time from response"
-    exit 1
-fi
-
-# Convert block time to Unix timestamp
-# Try Linux format first (GNU date), then macOS format (BSD date)
-block_timestamp=$(date -d "$block_time" +%s 2>/dev/null || date -u -j -f "%Y-%m-%dT%H:%M:%S" "${block_time%Z}" +%s 2>/dev/null || echo "")
-
-if [ -z "$block_timestamp" ]; then
-    # Try without timezone suffix
-    block_time_clean=$(echo "$block_time" | sed 's/Z$//; s/+[0-9][0-9]:[0-9][0-9]$//')
-    block_timestamp=$(date -d "$block_time_clean" +%s 2>/dev/null || date -u -j -f "%Y-%m-%dT%H:%M:%S" "$block_time_clean" +%s 2>/dev/null || echo "")
-fi
-
-if [ -z "$block_timestamp" ]; then
-    log_error "Could not parse latest_block_time: $block_time"
-    exit 1
-fi
-
-current_timestamp=$(date +%s)
-block_age=$((current_timestamp - block_timestamp))
-
-if [ $block_age -gt "$MAX_BLOCK_AGE" ]; then
-    log_error "Node appears stuck: latest block is ${block_age}s old (max: ${MAX_BLOCK_AGE}s)"
-    exit 1
-fi
-
-log_success "Node is up, synced, and processing blocks (latest block: ${block_age}s ago)"
+log_success "Node is up and synced"
 exit 0
