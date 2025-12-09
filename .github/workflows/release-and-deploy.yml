@@ -57,6 +57,7 @@ jobs:
         run: |
           helm repo add bitnami https://charts.bitnami.com/bitnami
           helm repo add zalando https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+          helm repo add p2p-cosmos https://p2p-org.github.io/cosmos-helm-charts/
           helm repo update
 
       - name: Setup Node.js
