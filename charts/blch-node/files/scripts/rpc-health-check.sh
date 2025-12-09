@@ -36,7 +36,7 @@ log() {
 }
 
 log_error() {
-    echo "[ERROR] $*" >&2
+    echo "[WARNING] $*" >&2
 }
 
 log_success() {
