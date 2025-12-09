@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-overlay
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "blch-node.labels" . | nindent 4 }}
+data:
+  config-overlay.toml: |
+    {{- if eq .Values.blch.nodeType "sentry" }}
+    priv_validator_laddr = "tcp://0.0.0.0:1234"
+    {{- end }}
+    {{- with .Values.blch.config.seeds }}
+    seeds = {{ . | quote }}
+    {{- end }}
+    {{- with .Values.blch.config.peers }}
+    peers = {{ . | quote }}
+    {{- end }}
+    {{- if .Values.blch.config.kvIndexerEnabled }}
+    [tx_index]
+    indexer = "kv"
+    {{- end }}
+    {{- with .Values.blch.config.overrides }}
+    {{- . | nindent 4 }}
+    {{- end }}
+  app-overlay.toml: |
+    minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
+    {{- with .Values.blch.pruning }}
+    pruning-strategy = {{ .strategy | default "custom" | quote }}
+    pruning-keep-recent = {{ .keepRecent | default 100 | quote }}
+    pruning-interval = {{ .interval | default 10 | quote }}
+    {{- with .keepEvery }}
+    pruning-keep-every = {{ . | quote }}
+    {{- end }}
+    {{- end }}
+    {{- with .Values.blch.appOverrides }}
+    {{- . | nindent 4 }}
+    {{- end }}

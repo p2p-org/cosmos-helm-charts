@@ -1,0 +1,13 @@
+{{- range .Values.sidecar.configMaps }}
+{{- if .enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "blch-node.labels" $ | nindent 4 }}
+data:
+  {{- toYaml .data | nindent 2 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,295 @@
+# Default values for RPC nodes
+
+## Pod Specs
+image: ""
+imageTag: ""
+# Toolkit image used for init containers and healthcheck sidecar
+toolkitImage: ""
+toolkitImageTag: ""
+# Image pull policy for all containers (defaults to "Always" if not set)
+imagePullPolicy: "Always"
+imagePullSecrets: ""
+replicas: ""
+maxUnavailable: ""
+storage:
+  data: "300Gi"
+  config: "5Gi"
+storageClassName: ""
+# Key to be used for node affinity
+nodeSelectorKey: ""
+# [Optional] Tolerations for the pod
+tolerations: []
+# [Optional] Additional matches for node affinity
+# affinityAdditionalMatches: {}
+# [Optional] Label to be used for node selector
+# nodeSelectorLabel: {}
+# [Optional] Enable podAntiAffinity to run only one pod per hostname
+podAntiAffinityPerNode: true
+volumeRetainPolicy: "Delete"
+# Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
+rollingUpdateEnabled: false
+blockRollbackInitContainer:
+  enabled: false
+debugInitContainer:
+  enabled: false
+debugSidecar:
+  enabled: false
+# resources: {}
+
+# Optional additional configuration for the pod template
+# initContainers: []
+# nodeLabels:
+#   app: "rpc-node"
+#   abc: "xyz"
+# nodeAnnotations: {}
+# priorityClassName
+
+# Sidecar container configuration for the CosmosFullNode
+sidecar:
+  enabled: false
+  name: "sidecar"
+  image: "nginx:alpine"
+  imagePullPolicy: "IfNotPresent"
+  command: ["/bin/sh"]
+  args: []
+  ports: []
+  # Example ports configuration:
+  # ports:
+  #   - name: "sidecar-port"
+  #     port: 8080
+  #     protocol: "TCP"
+  #   - name: "metrics-port"
+  #     port: 9090
+  #     protocol: "TCP"
+  configMaps: []
+  # Example ConfigMaps configuration:
+  # configMaps:
+  #   - name: "sidecar-config"
+  #     enabled: true
+  #     mountPath: "/etc/sidecar"
+  #     data:
+  #       config.yaml: |
+  #         server:
+  #           port: 8080
+  #   - name: "app-config"
+  #     enabled: true
+  #     mountPath: "/app/config"
+  #     subPath: "app.properties"
+  #     data:
+  #       app.properties: |
+  #         app.name=sidecar
+  env: []
+  envFrom: []
+  resources: {}
+# Labels to be applied to all resources
+# labels:
+#   team: "cosmos"
+#   environment: "production"
+
+service:
+  # Allow endpoints to be available while pods are not ready during sync
+  publishSvcDuringSync: true
+  type: ClusterIP
+  ports:
+    p2p:
+      port: 26656
+      containerPort: 26656
+      protocol: TCP
+    rpc:
+      port: 26657
+      containerPort: 26657
+      protocol: TCP
+    grpc:
+      port: 9090
+      containerPort: 9090
+      protocol: TCP
+    rest:
+      port: 1317
+      containerPort: 1317
+      protocol: TCP
+    ws:
+      port: 8546
+      containerPort: 8546
+      protocol: TCP
+    prometheus:
+      port: 9091
+      containerPort: 9091
+      protocol: TCP
+# Optional additional configuration for the services
+# maxP2PExternalAddresses: 1
+# additionalServiceConfig:
+#   p2pTemplate:
+#     metadata:
+#       labels:
+#         extra: labels
+#       annotations:
+#         extra: annotations
+#     type: NodePort
+
+## Chain Specs
+blch:
+  # Whether the node is a full or archive node. Options are "full" or "archive"
+  nodeType: ""
+  id: ""
+  network: ""
+  name: ""
+  binary: ""
+  skipInvariants: true
+  # Optional halt height - node will halt at this block height
+  # haltHeight: ""
+  # Optional halt time - node will halt at this time (RFC3339 format, e.g., "2006-01-02T15:04:05Z")
+  # haltTime: ""
+  # Provide either a genesisURL or snapshotURL for the syncing process
+  # genesisURL: ""
+  # snapshotURL: ""
+  minGasPrice: ""
+  # Optional additional configuration for the chain
+  # appOverrides: |-
+  #  [example]
+  #   key = "value"
+
+  # Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
+  # addrbookURL: ""
+
+  # Optional additional configuration for the network
+  config:
+    # peers: ""
+    # seeds: ""
+    # Make sure to use the relevant title section for the overrides, e.g. [p2p], [tx_index], [rpc], etc.
+    # overrides: |-
+    #   [tx_index]
+    #   indexer = "kv"
+  # additionalStartArgs: ""
+  # Home directory relative to /home/operator/ (defaults to "cosmos")
+  homeDir: "cosmos"
+  # Pruning configuration
+  pruning:
+    strategy: "custom"
+    interval: 10
+    keepEvery: 0
+    keepRecent: 100
+    minRetainBlocks: 100
+
+# Healthcheck configuration
+healthcheck:
+  startupProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 30
+    successThreshold: 1
+  readinessProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  resources:
+    requests:
+      cpu: 5m
+      memory: 16Mi
+
+# Requires kube-prometheus-stack to be installed, along with blackbox-exporter and prometheus-json-exporter. If not available, set to false.
+# JSON exporter is used to monitor the latest block height, and requires the following configuration during setup:
+#   ---
+#   modules:
+#     latest_block_height:
+#       metrics:
+#         - name: chain_latest_block_height
+#           path: '{.result.sync_info.latest_block_height}'
+#           valuetype: gauge
+monitoring:
+  enabled: false
+  # Provide a public RPC endpoint to compare the block height with.
+  publicRpcEndpoint: ""
+  alerts:
+    enabled: false
+    growingBlockHeightDifference: 25
+    maximumBlockHeightDifference: 100
+    maximumPeerDropPercentage: 25
+
+# Optional configuration for hosting public snapshots. The snapshot solution is not part of this chart.
+publishSnapshot:
+  enabled: false
+  cronJobSchedule: "0 */12 * * *"
+  # The path prefix for the snapshots. By default the chain.name is also included in the path. For example, if the pathPrefix is set to "snapshots", the snapshots will be available under /snapshots/cosmoshub/.
+  pathPrefix: ""
+
+# Basic Auth can be enabled  for all RPC endpoints, it will create a secret with a randomly generated username and password. Check NOTES.txt to retrieve the credentials.
+basicAuth:
+  enabled: false
+
+# All endpoints will be exposed under the same domain, you can set a base domain to be used for all endpoints.
+endpointsBaseDomain: ""
+
+# Gateway API Configuration
+# When useGatewayAPI is true, HTTPRoute resources will be created instead of Ingress resources
+# This requires a Gateway to be deployed separately in the cluster
+useGatewayAPI: false
+# Gateway configuration for HTTPRoute resources
+gateway:
+  # Name of the Gateway resource
+  name: ""
+  # Namespace of the Gateway resource
+  namespace: ""
+  # Array of listener names to attach HTTPRoute to (e.g., ["https-listener", "http-listener"])
+  listeners: []
+
+## Ingress Specs
+# Endpoints can be configured as a map, each representing an endpoint, you can define as many endpoints as needed, following the below structure:
+#   enabled: A boolean value to enable or disable the RPC service.
+#   servicePort: The port number for the RPC service. This is defined by the cosmos-operator and created as part of CosmosFullNode.
+#   path: (Optional) The path to set for the endpoints, default to `/` if not set.
+#   ingressName: (Optional) The name of the ingress resource.
+#   host: (Optional) The host for the ingress.
+#   tlsHost: (Optional) The TLS host for the ingress.
+#   tlsSecretName: (Optional) The name of the TLS secret.
+#   additionalIngressAnnotations: (Optional) Additional annotations for the ingress. For example, you can specify timeouts and cors.
+# Note that some endpoints might need additional overrides to work properly, you can define them as appOverrides under the blch specs.
+# Note: When useGatewayAPI is true, HTTPRoute is used for all endpoints including GRPC (since GRPC is built on HTTP/2).
+endpoints:
+  rpc:
+    enabled: true
+    servicePort: 26657
+    additionalIngressAnnotations: {}
+  grpc:
+    enabled: false
+    servicePort: 9090
+    additionalIngressAnnotations: {}
+  ws:
+    enabled: false
+    servicePort: 8546
+    additionalIngressAnnotations: {}
+  ws-rpc:
+    enabled: false
+    servicePort: 26657
+    path: "/websocket"
+    additionalIngressAnnotations: {}
+  rest:
+    enabled: false
+    servicePort: 1317
+    additionalIngressAnnotations: {}
+
+# Cosmos Exporter configuration
+# Set enabled to false to disable the cosmos-exporter subchart
+cosmos-exporter:
+  enabled: false
+#   image:
+#     repository: ghcr.io/p2p-org/rcosmos-exporter
+#     tag: ""
+# config:
+#   general:
+#     # Need to match the network name in the cosmos-exporter network mode if you are running it
+#     network: ""
+#     alerting:
+#       validators: []
+#   node:
+#     client: ""
+#     tendermint:
+#       nodeInfo:
+#         enabled: true
+#         interval: 30
+#     cometbft:
+#       status:
+#         enabled: true
+#         interval: 30

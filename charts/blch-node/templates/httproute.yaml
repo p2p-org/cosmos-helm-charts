@@ -1,0 +1,72 @@
+{{- if .Values.useGatewayAPI }}
+{{- if and .Values.gateway.name .Values.gateway.namespace .Values.gateway.listeners }}
+{{- range $key, $val := .Values.endpoints }}
+{{- $enabled := default true $val.enabled }}
+{{- if $enabled }}
+{{- $servicePort := $val.servicePort }}
+{{- if not $servicePort }}
+{{- if eq $key "rpc" }}
+{{- $servicePort = $.Values.service.ports.rpc.port }}
+{{- else if eq $key "grpc" }}
+{{- $servicePort = $.Values.service.ports.grpc.port }}
+{{- else if eq $key "ws" }}
+{{- $servicePort = $.Values.service.ports.ws.port }}
+{{- else if eq $key "rest" }}
+{{- $servicePort = $.Values.service.ports.rest.port }}
+{{- else }}
+{{- $servicePort = $.Values.service.ports.rpc.port }}
+{{- end }}
+{{- end }}
+{{- $name := printf "%s-%s" $.Release.Name $key }}
+{{- $host := include "host" (dict "context" $ "endpointName" $key) }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: {{ default $name $val.ingressName }}-nlb
+  labels:
+{{ include "blch-node.labels" $ | nindent 4 }}
+  {{- with $val.additionalIngressAnnotations }}
+  annotations:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+  {{- range $.Values.gateway.listeners }}
+  - name: {{ $.Values.gateway.name }}
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    namespace: {{ $.Values.gateway.namespace }}
+    sectionName: {{ . }}
+  {{- end }}
+  hostnames:
+  - {{ $host | quote }}
+  rules:
+  {{- if kindIs "slice" $val.path }}
+  {{- range $val.path }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{ .path }}
+    backendRefs:
+    - name: {{ $.Release.Name }}-rpc
+      port: {{ default $servicePort .servicePort }}
+      kind: Service
+      weight: 1
+  {{- end }}
+  {{- else }}
+  - matches:
+    - path:
+        type: PathPrefix
+        value: {{ default "/" $val.path }}
+    backendRefs:
+    - name: {{ $.Release.Name }}-rpc
+      group: ''
+      port: {{ $servicePort }}
+      kind: Service
+      weight: 1
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
