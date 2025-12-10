@@ -66,6 +66,7 @@ config:
         enabled: true
         interval: 30
         window: 500
+        batch: 1
         tx:
           enabled: true
         uptime:

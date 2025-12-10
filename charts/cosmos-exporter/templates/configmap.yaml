@@ -63,6 +63,7 @@ data:
           enabled: {{ .Values.config.network.cometbft.block.enabled }}
           interval: {{ .Values.config.network.cometbft.block.interval }}
           window: {{ .Values.config.network.cometbft.block.window }}
+          batch: {{ .Values.config.network.cometbft.block.batch }}
           tx:
             enabled: {{ .Values.config.network.cometbft.block.tx.enabled }}
           uptime:
