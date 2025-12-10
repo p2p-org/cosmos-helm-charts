@@ -46,10 +46,16 @@ metadata:
     {{- include "blch-node.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.p2p.type }}
+  {{- with .Values.service.p2p.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.service.p2p.publishNotReadyAddresses }}
+  publishNotReadyAddresses: {{ . }}
+  {{- end }}
   ports:
     - name: p2p
-      port: {{ .Values.service.p2p.ports.port }}
-      targetPort: {{ .Values.service.p2p.ports.containerPort }}
-      protocol: {{ .Values.service.p2p.ports.protocol }}
+      port: {{ .Values.service.p2p.port }}
+      targetPort: {{ .Values.service.p2p.containerPort }}
+      protocol: {{ .Values.service.p2p.protocol }}
   selector:
     {{- include "blch-node.labels" . | nindent 4 }}

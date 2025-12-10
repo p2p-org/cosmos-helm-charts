@@ -11,6 +11,10 @@ data:
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
     {{- if .Values.blch.config }}
+    {{- if .Values.blch.config.externalAddress }}
+    [p2p]
+    external_address = "{{ .Values.blch.config.externalAddress }}:{{ .Values.service.p2p.port }}"
+    {{- end }}
     {{- if .Values.blch.config.seeds }}
     seeds = {{ .Values.blch.config.seeds | quote }}
     {{- end }}

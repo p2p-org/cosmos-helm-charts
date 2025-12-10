@@ -177,8 +177,8 @@ spec:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         ports:
         - name: p2p
-          containerPort: {{ .Values.service.p2p.ports.containerPort }}
-          protocol: {{ .Values.service.p2p.ports.protocol }}
+          containerPort: {{ .Values.service.p2p.containerPort }}
+          protocol: {{ .Values.service.p2p.protocol }}
         - name: rpc
           containerPort: {{ .Values.service.ports.rpc.containerPort }}
           protocol: {{ .Values.service.ports.rpc.protocol }}
