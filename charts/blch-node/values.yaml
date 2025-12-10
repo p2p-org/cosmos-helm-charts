@@ -85,14 +85,17 @@ sidecar:
 #   environment: "production"
 
 service:
+  p2p:
+    type: LoadBalancer
+    ports:
+      - port: 26656
+        containerPort: 26656
+        protocol: TCP
+    publishNotReadyAddresses: true
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
   type: ClusterIP
   ports:
-    p2p:
-      port: 26656
-      containerPort: 26656
-      protocol: TCP
     rpc:
       port: 26657
       containerPort: 26657
@@ -272,6 +275,7 @@ endpoints:
 # Set enabled to false to disable the cosmos-exporter subchart
 cosmos-exporter:
   enabled: false
+  nodeSelector: {}
 #   image:
 #     repository: ghcr.io/p2p-org/rcosmos-exporter
 #     tag: ""

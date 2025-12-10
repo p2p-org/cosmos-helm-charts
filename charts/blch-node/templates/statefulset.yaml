@@ -177,8 +177,8 @@ spec:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         ports:
         - name: p2p
-          containerPort: {{ .Values.service.ports.p2p.containerPort }}
-          protocol: {{ .Values.service.ports.p2p.protocol }}
+          containerPort: {{ .Values.service.p2p.ports.containerPort }}
+          protocol: {{ .Values.service.p2p.ports.protocol }}
         - name: rpc
           containerPort: {{ .Values.service.ports.rpc.containerPort }}
           protocol: {{ .Values.service.ports.rpc.protocol }}
@@ -376,7 +376,7 @@ spec:
       {{- end }}
   volumeClaimTemplates:
   - metadata:
-      name: data
+      name: pvc
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
@@ -386,7 +386,7 @@ spec:
       storageClassName: {{ . }}
       {{- end }}
   - metadata:
-      name: config
+      name: pvc-config
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:

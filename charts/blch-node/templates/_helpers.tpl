@@ -55,10 +55,10 @@ Based on cosmosfullnode.yaml pod template
 {{- define "blch-node.initContainerVolumeMounts" -}}
 {{- $homeDir := .Values.blch.homeDir -}}
 {{- $home := printf "/home/operator/%s" $homeDir -}}
-- mountPath: {{ printf "%s/data" $home }}
-  name: data
+- mountPath: {{ $home | quote }}
+  name: pvc
 - mountPath: {{ printf "%s/config" $home }}
-  name: config
+  name: pvc-config
 - mountPath: /tmp
   name: vol-system-tmp
 - mountPath: {{ printf "%s/.tmp" $home }}
@@ -77,10 +77,10 @@ Based on cosmosfullnode.yaml pod template
 {{- define "blch-node.nodeContainerVolumeMounts" -}}
 {{- $homeDir := .Values.blch.homeDir -}}
 {{- $home := printf "/home/operator/%s" $homeDir -}}
-- mountPath: {{ printf "%s/data" $home }}
-  name: data
+- mountPath: {{ $home | quote }}
+  name: pvc
 - mountPath: {{ printf "%s/config" $home }}
-  name: config
+  name: pvc-config
 - mountPath: /tmp
   name: vol-system-tmp
 - mountPath: /scripts

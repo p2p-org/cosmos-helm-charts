@@ -77,6 +77,7 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | blch.skipInvariants | bool | `true` |  |
 | blockRollbackInitContainer.enabled | bool | `false` |  |
 | cosmos-exporter.enabled | bool | `false` |  |
+| cosmos-exporter.nodeSelector | bool | `false` | `{}` |
 | debugInitContainer.enabled | bool | `false` |  |
 | debugSidecar.enabled | bool | `false` |  |
 | endpoints.grpc.additionalIngressAnnotations | object | `{}` |  |
