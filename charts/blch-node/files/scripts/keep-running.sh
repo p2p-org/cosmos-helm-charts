@@ -20,7 +20,7 @@ trap cleanup TERM INT
 
 log "Sidecar container started, waiting for termination signal..."
 
-# Keep container running by tailing /dev/null
-# This is a common pattern to keep containers alive
-tail -f /dev/null
-
+# Keep container running using a loop with short sleeps for fast termination
+while true; do
+    sleep 1 || true
+done
