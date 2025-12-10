@@ -154,6 +154,7 @@ blch:
 
   # Optional additional configuration for the network
   config:
+    # externalAddress: ""
     # peers: ""
     # seeds: ""
     # Make sure to use the relevant title section for the overrides, e.g. [p2p], [tx_index], [rpc], etc.

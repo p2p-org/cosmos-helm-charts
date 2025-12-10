@@ -63,6 +63,7 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | basicAuth.enabled | bool | `false` |  |
 | blch.binary | string | `""` |  |
 | blch.config.overrides | string | `"[tx_index]\nindexer = \"kv\""` |  |
+| blch.config.externalAddress | string | "" | |
 | blch.homeDir | string | `"cosmos"` |  |
 | blch.id | string | `""` |  |
 | blch.minGasPrice | string | `""` |  |
