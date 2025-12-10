@@ -133,9 +133,6 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | service.ports.grpc.containerPort | int | `9090` |  |
 | service.ports.grpc.port | int | `9090` |  |
 | service.ports.grpc.protocol | string | `"TCP"` |  |
-| service.ports.p2p.containerPort | int | `26656` |  |
-| service.ports.p2p.port | int | `26656` |  |
-| service.ports.p2p.protocol | string | `"TCP"` |  |
 | service.ports.prometheus.containerPort | int | `9091` |  |
 | service.ports.prometheus.port | int | `9091` |  |
 | service.ports.prometheus.protocol | string | `"TCP"` |  |
@@ -150,6 +147,12 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | service.ports.ws.protocol | string | `"TCP"` |  |
 | service.publishSvcDuringSync | bool | `true` |  |
 | service.type | string | `"ClusterIP"` |  |
+| service.p2p.containerPort | int | `26656` |  |
+| service.p2p.port | int | `26656` |  |
+| service.p2p.protocol | string | `"TCP"` |  |
+| service.p2p.publishSvcDuringSync | bool | `true` |  |
+| service.p2p.type | string | `"LoadBalancer"` |  |
+| service.p2p.publishSvcDuringSync | bool | `true` |  |
 | sidecar.args | list | `[]` |  |
 | sidecar.command[0] | string | `"/bin/sh"` |  |
 | sidecar.configMaps | list | `[]` |  |

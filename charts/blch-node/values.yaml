@@ -87,11 +87,11 @@ sidecar:
 service:
   p2p:
     type: LoadBalancer
-    ports:
-      - port: 26656
-        containerPort: 26656
-        protocol: TCP
+    externalTrafficPolicy: Local
     publishNotReadyAddresses: true
+    port: 26656
+    containerPort: 26656
+    protocol: TCP
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
   type: ClusterIP
