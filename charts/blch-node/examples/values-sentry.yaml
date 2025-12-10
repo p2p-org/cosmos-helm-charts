@@ -1,0 +1,106 @@
+image: ghcr.io/p2p-org/cosmos-heighliner
+imageTag: saga-v0.4.0
+# Required for the new chart - toolkit image used for init containers and healthcheck sidecar
+toolkitImage: ghcr.io/p2p-org/cosmos-heighliner
+toolkitImageTag: saga-v0.4.0
+replicas: 1
+storage:
+  data: 80Gi
+resources:
+  requests:
+    cpu: 250m
+    memory: 5Gi
+  limits:
+    memory: 5Gi
+commonLabels:
+  team: "cosmos"
+  client: "p2p"
+  protocol: "saga"
+  network: "saga-testnet"
+nodeSelectorLabel:
+  team: "cosmos"
+tolerations:
+  - key: "team"
+    value: "cosmos"
+    effect: "NoSchedule"
+blch:
+  nodeType: sentry
+  pruning:
+    strategy: default
+  id: ssc-testnet-3
+  protocol: saga
+  network: testnet
+  minGasPrice: 0.01utsaga
+  appOverrides: |-
+    iavl-disable-fastnode = false
+    inter-block-cache = true
+  binary: sscd
+  homeDir: .ssc
+  config:
+    seeds: "09ae7e33d0e0df33d902a6a9ad06788716194420@148.72.141.31:26746,295946ce18a04755faabdaec7e1fed4fe5ad6b6b@184.107.110.139:26656,35774fc7becf605fe1e72cad58248fef3281d8f1@146.59.71.233:26656,36e86608e53f380c1afc43091385e8b7eccafb95@85.195.103.141:26616,4ad8c47ad3940c97b74fe933140e8f947b0bdde5@135.181.180.144:26656,4f4563e3281123306fab1c719035b55acf20465f@5.0.1.1:26656,708816e0c3d29c678c6b99f5faa4a04b1d25e479@49.51.136.210:26656,711bbc430347ae4034e2e3058db0a9bbc0f3c9c0@148.113.166.142:26656"
+    overrides: |-
+      [p2p]
+      max_num_inbound_peers = 100
+      max_num_outbound_peers = 100
+      [mempool]
+      version = "v0"
+      [tx_index]
+      indexer = "null"
+  snapshotURL: https://ss-t.saga.nodestake.org/2025-09-05_saga_975892.tar.lz4
+  genesisURL: https://github.com/p2p-org/devops-tendermint-public/releases/download/genesis-collection/genesis-saga-testnet-3.json
+cosmosExporter:
+  enabled: true
+  network: saga-testnet
+  alertingValidators:
+    - "C22C4618C5AFF753529BA40BCAE6EC03726FC3B7"
+
+imagePullSecrets: "github-secret"
+storageClassName: "oci-bv"
+podAntiAffinityPerNode: true
+endpoints:
+  rpc:
+    enabled: true
+  rest:
+    enabled: true
+
+podAntiAffinityPerNode: true
+cosmosNodeAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "26660"
+  prometheus.io/path: "/metrics"
+commonLabels:
+  team: "cosmos"
+cosmosNodeLabels:
+  team: "cosmos"
+cosmosOperatorRBAC:
+  enabled: true
+imagePullSecrets: "github-secret"
+storageClassName: "oci-bv"
+monitoring:
+  enabled: false
+endpoints:
+  rpc:
+    enabled: true
+    additionalIngressAnnotations:
+      "external-dns.alpha.kubernetes.io/cloudflare-proxied": "true"
+  rest:
+    enabled: true
+    additionalIngressAnnotations:
+      "external-dns.alpha.kubernetes.io/cloudflare-proxied": "true"
+cosmosExporter:
+  enabled: true
+  image: ghcr.io/p2p-org/rcosmos-exporter
+  tag: v2.7.0
+endpointsBaseDomain: "tm.p2p.world"
+useGatewayAPI: true
+gateway:
+  name: cosmos-gateway
+  namespace: cosmos-gateway
+  listeners:
+    - "http-0"
+    - "https-0"
+
+rollingUpdateEnabled: true
+service:
+  annotations:
+    service.beta.kubernetes.io/oci-load-balancer-subnet1: "ocid1.subnet.oc1.eu-frankfurt-1.aaaaaaaaa3kwpqgnpd3ub4ig5rnheizmijsckjdra5b5ol5hn65wfmyfh76q"
