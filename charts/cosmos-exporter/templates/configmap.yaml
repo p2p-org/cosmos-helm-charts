@@ -10,6 +10,7 @@ data:
       network: {{ .Values.config.general.network }}
       chain_id: {{ .Values.config.general.chain_id | default "cometbft" }}
       mode: {{ .Values.config.general.mode }}
+      rpc_timeout_seconds: {{ .Values.config.general.rpc_timeout_seconds }}
       metrics:
         address: {{ .Values.config.general.metrics.address }}
         port: {{ .Values.config.general.metrics.port }}
@@ -75,6 +76,7 @@ data:
           enabled: {{ .Values.config.network.cometbft.block.enabled }}
           interval: {{ .Values.config.network.cometbft.block.interval }}
           window: {{ .Values.config.network.cometbft.block.window }}
+          concurrency: {{ .Values.config.network.cometbft.block.concurrency }}
           tx:
             enabled: {{ .Values.config.network.cometbft.block.tx.enabled }}
           uptime:

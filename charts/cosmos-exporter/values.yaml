@@ -6,7 +6,7 @@ port: &appPort 9100
 image:
   repository: ghcr.io/p2p-org/rcosmos-exporter
   pullPolicy: Always
-  tag: v2.7.0
+  tag: v2.9.4
 
 env: []
 
@@ -32,6 +32,7 @@ externalSecrets: []
 
 config:
   general:
+    rpc_timeout_seconds: 20
     network:
     chain_id: cometbft
     mode: network
@@ -66,6 +67,7 @@ config:
         enabled: true
         interval: 30
         window: 500
+        concurrency: 1
         tx:
           enabled: true
         uptime:
