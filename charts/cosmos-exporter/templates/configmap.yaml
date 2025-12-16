@@ -24,7 +24,13 @@ data:
         {{- end }}
       nodes:
         rpc:
-          {{- if and .Values.config.nodes.rpc (ne (len .Values.config.nodes.rpc) 0) }}
+          {{- if .Values.localNodes.enabled }}
+          {{- range $i := until (int .Values.localNodes.replicas) }}
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-headless-{{ $i }}:26657
+            healthEndpoint: /health
+          {{- end }}
+          {{- else if and .Values.config.nodes.rpc (ne (len .Values.config.nodes.rpc) 0) }}
           {{- range .Values.config.nodes.rpc }}
           - name: {{ .name }}
             url: {{ .url }}
@@ -34,7 +40,13 @@ data:
           []
           {{- end }}
         lcd:
-          {{- if and .Values.config.nodes.lcd (ne (len .Values.config.nodes.lcd) 0) }}
+          {{- if .Values.localNodes.enabled }}
+          {{- range $i := until (int .Values.localNodes.replicas) }}
+          - name: {{ $.Release.Name }}-{{ $i }}
+            url: http://{{ $.Release.Name }}-headless-{{ $i }}:1317
+            healthEndpoint: /cosmos/base/node/v1beta1/status
+          {{- end }}
+          {{- else if and .Values.config.nodes.lcd (ne (len .Values.config.nodes.lcd) 0) }}
           {{- range .Values.config.nodes.lcd }}
           - name: {{ .name }}
             url: {{ .url }}

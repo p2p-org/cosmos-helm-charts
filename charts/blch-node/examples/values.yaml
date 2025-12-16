@@ -258,3 +258,44 @@ endpoints:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
+# Cosmos Exporter configuration
+# Example 1: Generate local nodes using YAML anchor (recommended for dynamic node generation)
+# This automatically generates node configs from the headless provided K8s services based on replicas
+cosmosExporter:
+  enabled: true
+  localNodes:
+    enabled: true
+    replicas: *replicas  # Uses YAML anchor to reference replicas value above
+  config:
+    general:
+      network: "cosmoshub-cosmos"
+      mode: "node"
+    node:
+      client: "gaiad"
+
+# Example 2: Static node configuration (traditional approach)
+# cosmosExporter:
+#   enabled: true
+#   localNodes: false
+#   config:
+#     general:
+#       network: "cosmoshub-cosmos"
+#       mode: "node"
+#     nodes:
+#       rpc:
+#         - name: "node-0"
+#           url: "http://my-release-0:26657"
+#           healthEndpoint: "/health"
+#         - name: "node-1"
+#           url: "http://my-release-1:26657"
+#           healthEndpoint: "/health"
+#       lcd:
+#         - name: "node-0"
+#           url: "http://my-release-0:1317"
+#           healthEndpoint: "/cosmos/base/node/v1beta1/status"
+#         - name: "node-1"
+#           url: "http://my-release-1:1317"
+#           healthEndpoint: "/cosmos/base/node/v1beta1/status"
+#     node:
+#       client: "gaiad"
+
