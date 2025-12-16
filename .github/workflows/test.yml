@@ -35,6 +35,7 @@ jobs:
           if [ -f ${{ matrix.chart_dir }}/Chart.yaml ]; then
             helm repo add bitnami https://charts.bitnami.com/bitnami
             helm repo add zalando https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+            helm repo add p2p-cosmos https://p2p-org.github.io/cosmos-helm-charts/
             helm repo update
             helm dependency update ${{ matrix.chart_dir }}
             helm dependency build ${{ matrix.chart_dir }}
