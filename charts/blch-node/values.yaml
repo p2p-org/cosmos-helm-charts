@@ -1,11 +1,11 @@
 # Default values for RPC nodes
 
 ## Pod Specs
-image: ""
-imageTag: ""
+image: "example-registry/image-name"
+imageTag: "tag"
 # Toolkit image used for init containers and healthcheck sidecar
-toolkitImage: ""
-toolkitImageTag: ""
+toolkitImage: "example-registry/image-name"
+toolkitImageTag: "tag"
 # Image pull policy for all containers (defaults to "Always" if not set)
 imagePullPolicy: "Always"
 imagePullSecrets: ""
@@ -274,7 +274,7 @@ endpoints:
 
 # Cosmos Exporter configuration
 # Set enabled to false to disable the cosmos-exporter subchart
-cosmos-exporter:
+cosmosExporter:
   enabled: false
   # Generate local node configurations from Kubernetes services
   # When enabled, dynamically generates node configs from the provided headless K8s services

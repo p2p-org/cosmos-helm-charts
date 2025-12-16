@@ -1,4 +1,4 @@
-{{- if eq .Values.blch.nodeType "sentry" || eq .Values.cosmosExporter.enabled true }}
+{{- if or (eq .Values.blch.nodeType "sentry") (and .Values.cosmosExporter.enabled .Values.cosmosExporter.localNodes.enabled) }}
 {{- range $i := until (int .Values.replicas) }}
 ---
 apiVersion: v1
@@ -13,13 +13,13 @@ spec:
     app.kubernetes.io/name: {{ $.Release.Name }}
     statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-{{ $i }}
   ports:
-  {{ -if eq .Values.blch.nodeType "sentry" }}
+  {{- if eq $.Values.blch.nodeType "sentry" }}
     - protocol: TCP
       port: 1234
       targetPort: 1234
       name: p2p
-  {{ -end }}
-  {{ -if eq .Values.cosmosExporter.enabled true }}
+  {{- end }}
+  {{- if and $.Values.cosmosExporter.enabled $.Values.cosmosExporter.localNodes.enabled }}
     - protocol: TCP
       port: 26657
       targetPort: 26657
@@ -28,7 +28,7 @@ spec:
       port: 1317
       targetPort: 1317
       name: rest
-  {{ -end }}
+  {{- end }}
   publishNotReadyAddresses: true
 {{- end }}
 {{- end }}

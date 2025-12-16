@@ -261,7 +261,7 @@ endpoints:
 # Cosmos Exporter configuration
 # Example 1: Generate local nodes using YAML anchor (recommended for dynamic node generation)
 # This automatically generates node configs from the headless provided K8s services based on replicas
-cosmos-exporter:
+cosmosExporter:
   enabled: true
   localNodes:
     enabled: true
@@ -274,7 +274,7 @@ cosmos-exporter:
       client: "gaiad"
 
 # Example 2: Static node configuration (traditional approach)
-# cosmos-exporter:
+# cosmosExporter:
 #   enabled: true
 #   localNodes: false
 #   config:
