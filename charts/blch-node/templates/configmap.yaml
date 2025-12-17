@@ -10,6 +10,8 @@ data:
     {{- if eq .Values.blch.nodeType "sentry" }}
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
+    [rpc]
+    laddr = "tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}"
     {{- if .Values.blch.config }}
     {{- if .Values.blch.config.externalAddress }}
     [p2p]
@@ -31,6 +33,12 @@ data:
     {{- end }}
   app-overlay.toml: |
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
+    [grpc]
+    address = "0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}"
+    [api]
+    address = "tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}"
+    [json-rpc]
+    ws-address = "0.0.0.0:{{ .Values.service.ports.ws.containerPort }}"
     {{- if .Values.blch.pruning }}
     pruning-strategy = {{ .Values.blch.pruning.strategy | default "custom" | quote }}
     pruning-keep-recent = {{ .Values.blch.pruning.keepRecent | default 100 | quote }}
