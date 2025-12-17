@@ -1,6 +1,6 @@
 dependencies:
 - name: cosmos-exporter
   repository: https://p2p-org.github.io/cosmos-helm-charts/
-  version: 1.33.0
-digest: sha256:c46277260fe2b098eb9ac5999f8f071980065b3d42241b819d3dd84a756747f6
-generated: "2025-12-17T15:08:49.784202+04:00"
+  version: 1.33.1
+digest: sha256:7565f74be7dcaff4d07d388d4d65b0350de25ea8995ed10d9f3d727f4a5f9249
+generated: "2025-12-17T17:46:40.119914+04:00"

@@ -7,7 +7,7 @@ appVersion: "1.0"
 
 dependencies:
   - name: cosmos-exporter
-    version: 1.33.0
+    version: 1.33.1
     repository: "https://p2p-org.github.io/cosmos-helm-charts/"
     alias: cosmos-exporter
     condition: cosmos-exporter.enabled
