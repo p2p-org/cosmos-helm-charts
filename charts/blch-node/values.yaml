@@ -79,10 +79,10 @@ sidecar:
   env: []
   envFrom: []
   resources: {}
-# Labels to be applied to all resources
-# labels:
-#   team: "cosmos"
-#   environment: "production"
+  # Labels to be applied to all resources
+  # labels:
+  #   team: "cosmos"
+  #   environment: "production"
 
 service:
   p2p:
