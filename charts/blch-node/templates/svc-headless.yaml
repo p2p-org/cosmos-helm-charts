@@ -1,4 +1,5 @@
-{{- if or (eq .Values.blch.nodeType "sentry") (and .Values.cosmosExporter.enabled .Values.cosmosExporter.localNodes.enabled) }}
+{{- $cosmosExporter := default (dict) (index .Values "cosmos-exporter") }}
+{{- if or (eq .Values.blch.nodeType "sentry") (and $cosmosExporter.enabled) }}
 {{- range $i := until (int .Values.replicas) }}
 ---
 apiVersion: v1

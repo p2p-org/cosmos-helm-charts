@@ -9,5 +9,5 @@ dependencies:
   - name: cosmos-exporter
     version: 1.33.0
     repository: "https://p2p-org.github.io/cosmos-helm-charts/"
-    alias: cosmosExporter
-    condition: cosmosExporter.enabled
+    alias: cosmos-exporter
+    condition: cosmos-exporter.enabled

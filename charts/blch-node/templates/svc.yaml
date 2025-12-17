@@ -44,6 +44,10 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "blch-node.labels" . | nindent 4 }}
+  {{- with .Values.service.p2p.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.p2p.type }}
   {{- with .Values.service.p2p.externalTrafficPolicy }}
