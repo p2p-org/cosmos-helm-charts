@@ -37,6 +37,7 @@ data:
     address = "0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}"
     [api]
     address = "tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}"
+    enable  = true
     [json-rpc]
     ws-address = "0.0.0.0:{{ .Values.service.ports.ws.containerPort }}"
     {{- if .Values.blch.pruning }}
