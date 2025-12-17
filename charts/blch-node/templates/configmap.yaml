@@ -28,7 +28,7 @@ data:
     indexer = "kv"
     {{- end }}
     {{- if .Values.blch.config.overrides }}
-    {{- .Values.blch.config.overrides | toYaml | nindent 4 }}
+    {{- .Values.blch.config.overrides | nindent 4 }}
     {{- end }}
     {{- end }}
   app-overlay.toml: |
@@ -49,5 +49,5 @@ data:
     {{- end }}
     {{- end }}
     {{- if .Values.blch.appOverrides }}
-    {{- .Values.blch.appOverrides | toYaml | nindent 4 }}
+    {{- .Values.blch.appOverrides | nindent 4 }}
     {{- end }}
