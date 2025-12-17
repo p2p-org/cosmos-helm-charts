@@ -27,6 +27,7 @@ spec:
         - name: {{ include "cosmos-exporter.fullname"  . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if or .Values.localNodes.enabled (gt (len .Values.env) 0) }}
           env:
             {{- if .Values.localNodes.enabled }}
             {{- range $i := until (int .Values.localNodes.replicas) }}
@@ -34,7 +35,10 @@ spec:
               value: {{ $.Release.Name }}-{{ $i }}
             {{- end }}
             {{- end }}
-            {{- toYaml .Values.env | nindent 12 }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.externalSecrets }}
           envFrom:
             {{- range .Values.externalSecrets }}
