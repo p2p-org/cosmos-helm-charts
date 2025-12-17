@@ -129,13 +129,13 @@ service:
 
 ## Chain Specs
 blch:
-  # Whether the node is a full or archive node. Options are "full" or "archive"
+  # Whether the node is a full or archive node. Options are "full", "archive" or "sentry"
   nodeType: ""
   id: ""
   network: ""
   name: ""
   binary: ""
-  skipInvariants: true
+  skipInvariants: ""
   # Optional halt height - node will halt at this block height
   # haltHeight: ""
   # Optional halt time - node will halt at this time (RFC3339 format, e.g., "2006-01-02T15:04:05Z")

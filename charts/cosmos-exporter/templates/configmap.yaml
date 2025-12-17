@@ -28,7 +28,7 @@ data:
           {{- range $i := until (int .Values.localNodes.replicas) }}
           - name: {{ $.Release.Name }}-{{ $i }}
             url: http://{{ $.Release.Name }}-headless-{{ $i }}:26657
-            healthEndpoint: /health
+            healthEndpoint: /status
           {{- end }}
           {{- else if and .Values.config.nodes.rpc (ne (len .Values.config.nodes.rpc) 0) }}
           {{- range .Values.config.nodes.rpc }}

@@ -28,6 +28,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            {{- if .Values.localNodes.enabled }}
+            {{- range $i := until (int .Values.localNodes.replicas) }}
+            - name: NODE_NAME
+              value: {{ $.Release.Name }}-{{ $i }}
+            {{- end }}
+            {{- end }}
             {{- toYaml .Values.env | nindent 12 }}
           {{- if .Values.externalSecrets }}
           envFrom:
