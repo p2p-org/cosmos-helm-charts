@@ -20,7 +20,7 @@ spec:
       targetPort: 1234
       name: p2p
   {{- end }}
-  {{- if and $.Values.cosmosExporter.enabled $.Values.cosmosExporter.localNodes.enabled }}
+  {{- if $cosmosExporter.enabled }}
     - protocol: TCP
       port: 26657
       targetPort: 26657
