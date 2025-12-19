@@ -160,28 +160,28 @@ spec:
           {{- if eq .Values.blch.nodeType "sentry" }}
           sleep 10
           {{- end }}
-          {{ .Values.blch.binary }} start\
-          --rpc.laddr="tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}"\
-          --grpc.address="0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}"\
-          --api.address="tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}"\
+          {{ .Values.blch.binary }} start \
+          --rpc.laddr="tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}" \
+          --grpc.address="0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}" \
+          --api.address="tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}" \
           {{- if .Values.endpoints.ws.enabled }}
-          --json-rpc.ws-address="0.0.0.0:{{ .Values.service.ports.ws.containerPort }}"\
+          --json-rpc.ws-address="0.0.0.0:{{ .Values.service.ports.ws.containerPort }}" \
           {{- end }}
           {{- if .Values.blch.config.externalAddress }}
-          --p2p.external-address="{{ .Values.blch.config.externalAddress }}:{{ .Values.service.p2p.port }}"\
+          --p2p.external-address="{{ .Values.blch.config.externalAddress }}:{{ .Values.service.p2p.port }}" \
           {{- end }}
           {{- if .Values.blch.skipInvariants }}
-            --x-crisis-skip-assert-invariants\
+            --x-crisis-skip-assert-invariants \
           {{- end }}
           {{- with .Values.blch.haltHeight }}
-            --halt-height={{ . }}\
+            --halt-height={{ . }} \
           {{- end }}
           {{- with .Values.blch.haltTime }}
-            --halt-time={{ . }}\
+            --halt-time={{ . }} \
           {{- end }}
           {{- with .Values.blch.additionalStartArgs }}
           {{- range . }}
-            {{ . }}\
+          {{ . }} \
           {{- end }}
           {{- end }}
           --home "$CHAIN_HOME"
