@@ -193,20 +193,6 @@ spec:
           protocol: {{ .Values.service.ports.ws.protocol }}
         volumeMounts:
         {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
-        {{- if .Values.sidecar.configMaps }}
-        {{- range .Values.sidecar.configMaps }}
-        {{- if .enabled }}
-        - name: {{ .name }}
-          mountPath: {{ .mountPath }}
-          {{- with .subPath }}
-          subPath: {{ . }}
-          {{- end }}
-          {{- if .readOnly }}
-          readOnly: {{ .readOnly }}
-          {{- end }}
-        {{- end }}
-        {{- end }}
-        {{- end }}
       - name: healthcheck
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
@@ -365,15 +351,15 @@ spec:
         configMap:
           name: {{ .Release.Name }}-scripts
           defaultMode: 0755
-      {{- if .Values.sidecar.configMaps }}
-        {{- range .Values.sidecar.configMaps }}
-        {{- if .enabled }}
-        - name: {{ .name }}
-          configMap:
-            name: {{ .name }}
-        {{- end }}
-        {{- end }}
-      {{- end }}
+      {{ if .Values.sidecar.configMaps }}
+      {{ range .Values.sidecar.configMaps }}
+      {{ if .enabled }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .name }}
+      {{ end }}
+      {{ end }}
+      {{ end }}
   volumeClaimTemplates:
   - metadata:
       name: pvc
