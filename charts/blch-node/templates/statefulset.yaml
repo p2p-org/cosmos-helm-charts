@@ -160,7 +160,7 @@ spec:
           {{- if eq .Values.blch.nodeType "sentry" }}
           sleep 10
           {{- end }}
-          {{ .Values.blch.binary }} start --home "$CHAIN_HOME"\
+          {{ .Values.blch.binary }} start\
           --rpc.laddr="tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}"\
           --grpc.address="0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}"\
           --api.address="tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}"\
@@ -184,6 +184,7 @@ spec:
             {{ . }}\
           {{- end }}
           {{- end }}
+          --home "$CHAIN_HOME"
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         ports:
