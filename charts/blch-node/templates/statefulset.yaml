@@ -352,10 +352,40 @@ spec:
           name: {{ .Release.Name }}-config-overlay
           defaultMode: 420
           items:
-          - key: config-overlay.toml
-            path: config-overlay.toml
-          - key: app-overlay.toml
-            path: app-overlay.toml
+          - key: config-overlay-defaults.toml
+            path: config-overlay-defaults.toml
+          - key: app-overlay-defaults.toml
+            path: app-overlay-defaults.toml
+          {{- if .Values.p2pDNSNameEnabled }}
+          {{- range $i := until (int .Values.replicas) }}
+          - key: config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml
+            path: config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml
+          {{- end }}
+          {{- end }}
+          {{- with .Values.configOverrides }}
+          {{- with .allnodes }}
+          - key: config-overlay-overrides.toml
+            path: config-overlay-overrides.toml
+          {{- end }}
+          {{- with .pernode }}
+          {{- range . }}
+          - key: config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+            path: config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- with .Values.appOverrides }}
+          {{- with .allnodes }}
+          - key: app-overlay-overrides.toml
+            path: app-overlay-overrides.toml
+          {{- end }}
+          {{- with .pernode }}
+          {{- range . }}
+          - key: app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+            path: app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+          {{- end }}
+          {{- end }}
+          {{- end }}
       - name: vol-scripts
         configMap:
           name: {{ .Release.Name }}-scripts

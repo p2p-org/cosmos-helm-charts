@@ -46,12 +46,11 @@ metadata:
   labels:
     {{- include "blch-node.labels" $ | nindent 4 }}
   {{- if or $.Values.p2pDNSNameEnabled $.Values.service.p2p.annotations }}
-  {{- with $.Values.service.p2p.annotations  }}
   annotations:
+  {{- with $.Values.service.p2p.annotations  }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with $.Values.p2pDNSNameEnabled }}
-  annotations:
     external-dns.alpha.kubernetes.io/hostname: {{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}
   {{- end }}
   {{- end }}
