@@ -167,9 +167,6 @@ spec:
           {{- if .Values.endpoints.ws.enabled }}
           --json-rpc.ws-address="0.0.0.0:{{ .Values.service.ports.ws.containerPort }}" \
           {{- end }}
-          {{- if .Values.blch.config.externalAddress }}
-          --p2p.external-address="{{ .Values.blch.config.externalAddress }}:{{ .Values.service.p2p.port }}" \
-          {{- end }}
           {{- if .Values.blch.skipInvariants }}
             --x-crisis-skip-assert-invariants \
           {{- end }}

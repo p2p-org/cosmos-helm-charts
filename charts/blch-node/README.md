@@ -98,6 +98,7 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | endpoints.ws.enabled | bool | `false` |  |
 | endpoints.ws.servicePort | int | `8546` |  |
 | endpointsBaseDomain | string | `""` |  |
+| p2pDNSNameEnabled | bool | `false` | |
 | gateway.listeners | list | `[]` |  |
 | gateway.name | string | `""` |  |
 | gateway.namespace | string | `""` |  |

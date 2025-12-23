@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "blch-node.labels" . | nindent 4 }}
 data:
-  config-overlay.toml: |
+  config-overlay-defaults.toml: |
     {{- if eq .Values.blch.nodeType "sentry" }}
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
@@ -21,11 +21,27 @@ data:
     [tx_index]
     indexer = "kv"
     {{- end }}
-    {{- if .Values.blch.config.overrides }}
-    {{- .Values.blch.config.overrides | nindent 4 }}
     {{- end }}
-    {{- end }}
-  app-overlay.toml: |
+  {{- if .Values.p2pDNSNameEnabled }}
+  {{- range $i := until (int .Values.replicas) }}
+  config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml: |
+    [p2p]
+    external-address = "{{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}:26656"
+  {{- end }}
+  {{- end }}
+  {{- with .Values.configOverrides }}
+  {{- with .allnodes }}
+  config-overlay-overrides.toml: |
+    {{- .overrides | nindent 4 }}
+  {{- end }}
+  {{- with .pernode }}
+  {{- range . }}
+  config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml: |
+    {{- .overrides | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  app-overlay-defaults.toml: |
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
     {{- if .Values.blch.pruning }}
     pruning-strategy = {{ .Values.blch.pruning.strategy | default "custom" | quote }}
@@ -35,6 +51,15 @@ data:
     pruning-keep-every = {{ .Values.blch.pruning.keepEvery | quote }}
     {{- end }}
     {{- end }}
-    {{- if .Values.blch.appOverrides }}
-    {{- .Values.blch.appOverrides | nindent 4 }}
-    {{- end }}
+  {{- with .appOverrides }}
+  {{- with .allnodes }}
+  app-overlay-overrides.toml: |
+    {{- .overrides | nindent 4 }}
+  {{- end }}
+  {{- with .pernode }}
+  {{- range . }}
+  app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml: |
+    {{- .overrides | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- end }}

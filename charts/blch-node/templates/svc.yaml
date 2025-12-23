@@ -36,30 +36,39 @@ spec:
       protocol: {{ .Values.service.ports.ws.protocol }}
   selector:
     {{- include "blch-node.labels" . | nindent 4 }}
+{{ range $i := until (int .Values.replicas) }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-p2p
-  namespace: {{ .Release.Namespace | quote }}
+  name: {{ $.Release.Name }}-p2p-{{ $i }}
+  namespace: {{ $.Release.Namespace | quote }}
   labels:
-    {{- include "blch-node.labels" . | nindent 4 }}
-  {{- with .Values.service.p2p.annotations }}
+    {{- include "blch-node.labels" $ | nindent 4 }}
+  {{- if or $.Values.p2pDNSNameEnabled $.Values.service.p2p.annotations }}
+  {{- with $.Values.service.p2p.annotations  }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with $.Values.p2pDNSNameEnabled }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}
+  {{- end }}
+  {{- end }}
 spec:
-  type: {{ .Values.service.p2p.type }}
-  {{- with .Values.service.p2p.externalTrafficPolicy }}
+  type: {{ $.Values.service.p2p.type }}
+  {{- with $.Values.service.p2p.externalTrafficPolicy }}
   externalTrafficPolicy: {{ . }}
   {{- end }}
-  {{- with .Values.service.p2p.publishNotReadyAddresses }}
+  {{- with $.Values.service.p2p.publishNotReadyAddresses }}
   publishNotReadyAddresses: {{ . }}
   {{- end }}
   ports:
     - name: p2p
-      port: {{ .Values.service.p2p.port }}
-      targetPort: {{ .Values.service.p2p.containerPort }}
-      protocol: {{ .Values.service.p2p.protocol }}
+      port: {{ $.Values.service.p2p.port }}
+      targetPort: {{ $.Values.service.p2p.containerPort }}
+      protocol: {{ $.Values.service.p2p.protocol }}
   selector:
-    {{- include "blch-node.labels" . | nindent 4 }}
+    {{- include "blch-node.labels" $ | nindent 4 }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+{{- end }}

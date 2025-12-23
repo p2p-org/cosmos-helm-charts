@@ -145,9 +145,27 @@ blch:
   # snapshotURL: ""
   minGasPrice: ""
   # Optional additional configuration for the chain
-  # appOverrides: |-
-  #  [example]
-  #   key = "value"
+  # Make sure to use the relevant title section for the overrides, e.g. [p2p], [tx_index], [rpc], etc.
+  # configOverrides:
+  #   allnodes:
+  #     overrides: |-
+  #       [example]
+  #       key = "value"
+  #   pernode:
+  #   - podOrdinal: 0 # Pod ordinal is the index of the pod in the replica set, it starts from 0.
+  #     overrides: |-
+  #       [example]
+  #       key = "value"
+  # appOverrides:
+  #   allnodes:
+  #     overrides: |-
+  #       [example]
+  #       key = "value"
+  #   pernode:
+  #   - podOrdinal: 0 # Pod ordinal is the index of the pod in the replica set, it starts from 0.
+  #     overrides: |-
+  #       [example]
+  #       key = "value"
 
   # Specify an addr book url to download the peers from, if not available, you can add the peers under config.peers
   # addrbookURL: ""
@@ -157,10 +175,6 @@ blch:
     # externalAddress: ""
     # peers: ""
     # seeds: ""
-    # Make sure to use the relevant title section for the overrides, e.g. [p2p], [tx_index], [rpc], etc.
-    # overrides: |-
-    #   [tx_index]
-    #   indexer = "kv"
   # additionalStartArgs: ""
   # Home directory relative to /home/operator/ (defaults to "cosmos")
   homeDir: "cosmos"
@@ -223,6 +237,9 @@ basicAuth:
 
 # All endpoints will be exposed under the same domain, you can set a base domain to be used for all endpoints.
 endpointsBaseDomain: ""
+
+# Enable DNS name for P2P External Service. Need external-dns to create the DNS record using the endpointsBaseDomain.
+p2pDNSNameEnabled: false
 
 # Gateway API Configuration
 # When useGatewayAPI is true, HTTPRoute resources will be created instead of Ingress resources

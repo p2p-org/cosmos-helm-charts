@@ -10,13 +10,30 @@ CONFIG_DIR="$CHAIN_HOME/config"
 TMP_DIR="$HOME/.tmp/config"
 OVERLAY_DIR="$HOME/.config"
 
+merge_config_if_exists() {
+    local base_file="$1"
+    local config_name="$2"
+    local output_file="$3"
+
+    [ ! -f "$base_file" ] && return 0
+
+    local args="$base_file"
+
+    # Add overlays in order only if they exist
+    for overlay_type in defaults defaults-$NODE_NAME overrides overrides-$NODE_NAME; do
+        local overlay_file="$OVERLAY_DIR/${config_name}-overlay-${overlay_type}.toml"
+        [ -f "$overlay_file" ] && args="$args $overlay_file"
+    done
+    echo "Args: $args"
+    config-merge -f toml $args > "$output_file"
+}
+
 echo "Merging config..."
 
-if [ -f "$TMP_DIR/config.toml" ]; then
-    config-merge -f toml "$TMP_DIR/config.toml" "$OVERLAY_DIR/config-overlay.toml" > "$CONFIG_DIR/config.toml"
-fi
-if [ -f "$TMP_DIR/app.toml" ]; then
-    config-merge -f toml "$TMP_DIR/app.toml" "$OVERLAY_DIR/app-overlay.toml" > "$CONFIG_DIR/app.toml"
-fi
+echo "Merging config.toml..."
+merge_config_if_exists "$TMP_DIR/config.toml" "config" "$CONFIG_DIR/config.toml"
+
+echo "Merging app.toml..."
+merge_config_if_exists "$TMP_DIR/app.toml" "app" "$CONFIG_DIR/app.toml"
 
 echo "Config merge complete."

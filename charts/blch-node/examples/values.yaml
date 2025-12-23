@@ -109,9 +109,18 @@ blch:
   minGasPrice: "0.025uatom"
 
   # Optional app configuration overrides
-  appOverrides: |
-    minimum-gas-prices = "0.025uatom"
-    pruning = "custom"
+  appOverrides:
+    allnodes:
+      overrides: |
+        minimum-gas-prices = "0.025uatom"
+        pruning = "custom"
+    pernode:
+      - podOrdinal: 0
+        overrides: |
+          iavl-disable-fastnode = false
+      - podOrdinal: 1
+        overrides: |
+          iavl-disable-fastnode = true
 
   # Address book URL for peer discovery
   addrbookURL: "https://github.com/cosmos/mainnet/raw/master/cosmoshub-4/addrbook.json"
@@ -120,12 +129,21 @@ blch:
   config:
     seeds: "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:14956"
     peers: "d72b3011ed46d783e369fdf8ae2055b99a1e5074@65.21.34.226:26656"
+configOverrides:
+  allnodes:
     overrides: |
       [p2p]
       max_num_inbound_peers = 100
       max_num_outbound_peers = 50
-      [tx_index]
-      indexer = "kv"
+  pernode:
+    - podOrdinal: 0
+      overrides: |
+        [tx_index]
+        indexer = "kv"
+    - podOrdinal: 1
+      overrides: |
+        [tx_index]
+        indexer = "null"
   # Additional start arguments
   additionalStartArgs: "--x-crisis-skip-assert-invariants"
 
