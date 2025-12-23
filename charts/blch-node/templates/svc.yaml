@@ -51,7 +51,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with $.Values.p2pDNSNameEnabled }}
-    external-dns.alpha.kubernetes.io/hostname: {{ $.Release.Name }}-{{ $i }}-p2p.{{ $.Values.endpointsBaseDomain }}
+    external-dns.alpha.kubernetes.io/hostname: {{ $.Release.Name }}-{{ $i }}.{{ $.Values.endpointsBaseDomain }}
   {{- end }}
   {{- end }}
 spec:
