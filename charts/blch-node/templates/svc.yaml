@@ -68,6 +68,6 @@ spec:
       targetPort: {{ $.Values.service.p2p.containerPort }}
       protocol: {{ $.Values.service.p2p.protocol }}
   selector:
-    {{- include "blch-node.labels" $ | nindent 4 }}
-    app.kubernetes.io/instance: {{ $.Release.Name }}-{{ $i }}
+    app.kubernetes.io/name: {{ $.Release.Name }}
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-{{ $i }}
 {{- end }}
