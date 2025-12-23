@@ -26,7 +26,7 @@ data:
   {{- range $i := until (int .Values.replicas) }}
   config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml: |
     [p2p]
-    external-address = "{{ $.Release.Name }}-{{ $i }}.{{ $.Values.endpointsBaseDomain }}:26656"
+    external_address = "{{ $.Release.Name }}-{{ $i }}.{{ $.Values.endpointsBaseDomain }}:26656"
   {{- end }}
   {{- end }}
   {{- with .Values.configOverrides }}
