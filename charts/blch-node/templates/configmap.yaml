@@ -51,7 +51,7 @@ data:
     pruning-keep-every = {{ .Values.blch.pruning.keepEvery | quote }}
     {{- end }}
     {{- end }}
-  {{- with .appOverrides }}
+  {{- with .Values.appOverrides }}
   {{- with .allnodes }}
   app-overlay-overrides.toml: |
     {{- .overrides | nindent 4 }}
