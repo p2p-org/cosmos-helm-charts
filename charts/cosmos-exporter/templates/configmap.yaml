@@ -190,7 +190,7 @@ data:
           alerting:
             {{- if and .Values.config.network.axelar.broadcaster.alerting.addresses (ne (len .Values.config.network.axelar.broadcaster.alerting.addresses) 0) }}
             addresses:
-              {{- toYaml .Values.config.network.axelar.broadcaster.alerting.addresses | nindent 10 }}
+              {{- toYaml .Values.config.network.axelar.broadcaster.alerting.addresses | nindent 14 }}
             {{- else }}
             addresses: []
             {{- end }}
