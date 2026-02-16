@@ -1,11 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  {{- if ne (toString .Values.localNodeID) "" }}
-  name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
-  {{- else }}
   name: {{ include "cosmos-exporter.fullname" . }}-config
-  {{- end }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
 data:
