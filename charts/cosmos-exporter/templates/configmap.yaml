@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  {{- if .Values.localNodeID }}
-    name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
+  {{- if ne (toString .Values.localNodeID) "" }}
+  name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
   {{- else }}
-    name: {{ include "cosmos-exporter.fullname" . }}-config
+  name: {{ include "cosmos-exporter.fullname" . }}-config
   {{- end }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
@@ -26,15 +26,15 @@ data:
         {{- else }}
         validators: []
         {{- end }}
-     {{- with .Values.localNodeID }}
+     {{- if ne (toString .Values.localNodeID) "" }}
       nodes:
         rpc:
-          - name: {{ $.Release.Name }}-{{ . }}
-            url: http://{{ $.Release.Name }}-headless-{{ . }}:26657
+          - name: {{ $.Release.Name }}-{{ .Values.localNodeID }}
+            url: http://{{ $.Release.Name }}-headless-{{ .Values.localNodeID }}:26657
             healthEndpoint: /status
         lcd:
-          - name: {{ $.Release.Name }}-{{ . }}
-            url: http://{{ $.Release.Name }}-headless-{{ . }}:1317
+          - name: {{ $.Release.Name }}-{{ .Values.localNodeID }}
+            url: http://{{ $.Release.Name }}-headless-{{ .Values.localNodeID }}:1317
             healthEndpoint: /cosmos/base/node/v1beta1/status
       {{- end }}
     node:
