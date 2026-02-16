@@ -1,11 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  {{- if ne (toString .Values.localNodeID) "" }}
-  name: {{ include "cosmos-exporter.fullname" . }}-{{ .Values.localNodeID }}
-  {{- else }}
   name: {{ include "cosmos-exporter.fullname" . }}
-  {{- end }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
     {{- with .Values.metadata.labels }}
