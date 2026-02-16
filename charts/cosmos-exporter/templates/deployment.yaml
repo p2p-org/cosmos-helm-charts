@@ -81,12 +81,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-        {{- if ne (toString .Values.localNodeID) "" }}
-        - name: config
-          configMap:
-            name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
-        {{- else }}
           - name: config
             configMap:
               name: {{ include "cosmos-exporter.fullname" . }}-config
-          {{- end }}
