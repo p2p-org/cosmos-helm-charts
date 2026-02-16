@@ -199,9 +199,6 @@ tolerations: []
 
 nodeSelector: {}
 
-# Enable for node mode when full nodes are running and exposed as local Kubernetes services to generate rpc/lcd endpoints configs dynamically
-# Service names are expected to be in the format: <release-name>-headless-<node-index>
-localNodes:
-  enabled: false
-# Number of nodes
-  replicas: 0
+# For node mode when full nodes are running and exposed as local Kubernetes services to generate rpc/lcd endpoints configs dynamically
+# Service names are expected to be in the format: <release-name>-headless-<localNodeID>
+localNodeID: ""
