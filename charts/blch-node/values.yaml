@@ -136,6 +136,9 @@ blch:
   name: ""
   binary: ""
   skipInvariants: ""
+  # Disable the --api.address flag in the start command (useful for chains like Cysic that don't support this flag)
+  # Set to true for chains that use --api.enable instead, or configure API address in app.toml
+  disableApiAddressFlag: false
   # Optional halt height - node will halt at this block height
   # haltHeight: ""
   # Optional halt time - node will halt at this time (RFC3339 format, e.g., "2006-01-02T15:04:05Z")

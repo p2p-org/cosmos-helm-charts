@@ -58,10 +58,12 @@ data:
           interval: {{ .Values.config.network.cometbft.block.interval }}
           window: {{ .Values.config.network.cometbft.block.window }}
           concurrency: {{ .Values.config.network.cometbft.block.concurrency }}
+          catchup_mode_threshold: {{ .Values.config.network.cometbft.block.catchup_mode_threshold }}
           tx:
             enabled: {{ .Values.config.network.cometbft.block.tx.enabled }}
           uptime:
             persistence: {{ .Values.config.network.cometbft.block.uptime.persistence }}
+            insert_concurrency: {{ .Values.config.network.cometbft.block.uptime.insert_concurrency }}
 
       tendermint:
         bank:
@@ -145,7 +147,6 @@ data:
         staking:
           enabled: {{ .Values.config.network.coredao.staking.enabled }}
           interval: {{ .Values.config.network.coredao.staking.interval }}
-
       sei:
         validators:
           enabled: {{ .Values.config.network.sei.validators.enabled }}
@@ -154,7 +155,23 @@ data:
           enabled: {{ .Values.config.network.sei.block.enabled }}
           interval: {{ .Values.config.network.sei.block.interval }}
           window: {{ .Values.config.network.sei.block.window }}
+          concurrency: {{ .Values.config.network.sei.block.concurrency }}
+          catchup_mode_threshold: {{ .Values.config.network.sei.block.catchup_mode_threshold }}
           tx:
             enabled: {{ .Values.config.network.sei.block.tx.enabled }}
           uptime:
             persistence: {{ .Values.config.network.sei.block.uptime.persistence }}
+            insert_concurrency: {{ .Values.config.network.sei.block.uptime.insert_concurrency }}
+
+      axelar:
+        broadcaster:
+          enabled: {{ .Values.config.network.axelar.broadcaster.enabled }}
+          interval: {{ .Values.config.network.axelar.broadcaster.interval }}
+          axelarscan_api: {{ .Values.config.network.axelar.broadcaster.axelarscan_api }}
+          alerting:
+            {{- if and .Values.config.network.axelar.broadcaster.alerting.addresses (ne (len .Values.config.network.axelar.broadcaster.alerting.addresses) 0) }}
+            addresses:
+              {{- toYaml .Values.config.network.axelar.broadcaster.alerting.addresses | nindent 14 }}
+            {{- else }}
+            addresses: []
+            {{- end }}

@@ -163,7 +163,9 @@ spec:
           {{ .Values.blch.binary }} start \
           --rpc.laddr="tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}" \
           --grpc.address="0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}" \
+          {{- if not .Values.blch.disableApiAddressFlag }}
           --api.address="tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}" \
+          {{- end }}                    
           {{- if .Values.endpoints.ws.enabled }}
           --json-rpc.ws-address="0.0.0.0:{{ .Values.service.ports.ws.containerPort }}" \
           {{- end }}
@@ -390,15 +392,15 @@ spec:
         configMap:
           name: {{ .Release.Name }}-scripts
           defaultMode: 0755
-      {{ if .Values.sidecar.configMaps }}
-      {{ range .Values.sidecar.configMaps }}
-      {{ if .enabled }}
+      {{- if .Values.sidecar.configMaps }}
+      {{- range .Values.sidecar.configMaps }}
+      {{- if .enabled }}
       - name: {{ .name }}
         configMap:
           name: {{ .name }}
-      {{ end }}
-      {{ end }}
-      {{ end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
   volumeClaimTemplates:
   - metadata:
       name: pvc
