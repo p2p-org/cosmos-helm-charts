@@ -1,7 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cosmos-exporter.fullname"  . }}
+  {{- if .Values.localNodeID }}
+  name: {{ include "cosmos-exporter.fullname" . }}-{{ .Values.localNodeID }}
+  {{- else }}
+  name: {{ include "cosmos-exporter.fullname" . }}
+  {{- end }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
     {{- with .Values.metadata.labels }}
@@ -27,25 +31,20 @@ spec:
         - name: {{ include "cosmos-exporter.fullname"  . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if or .Values.localNodes.enabled (gt (len .Values.env) 0) }}
           env:
-            {{- if .Values.localNodes.enabled }}
-            {{- range $i := until (int .Values.localNodes.replicas) }}
+            {{- with .Values.localNodeID }}
             - name: NODE_NAME
-              value: {{ $.Release.Name }}-{{ $i }}
-            {{- end }}
+              value: {{ $.Release.Name }}-{{ . }}
             {{- end }}
             {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- end }}
           {{- if .Values.externalSecrets }}
           envFrom:
             {{- range .Values.externalSecrets }}
             - secretRef:
                 name: {{ .target.name }}
             {{- end }}
-          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.port }}
@@ -81,6 +80,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if .Values.localNodeID }}
         - name: config
           configMap:
-            name: {{ include "cosmos-exporter.fullname" . }}-config
+            name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
+          {{- else }}
+          - name: config
+            configMap:
+              name: {{ include "cosmos-exporter.fullname" . }}-config
+          {{- end }}
