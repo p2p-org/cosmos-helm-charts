@@ -392,15 +392,15 @@ spec:
         configMap:
           name: {{ .Release.Name }}-scripts
           defaultMode: 0755
-      {{ if .Values.sidecar.configMaps }}
-      {{ range .Values.sidecar.configMaps }}
-      {{ if .enabled }}
+      {{- if .Values.sidecar.configMaps }}
+      {{- range .Values.sidecar.configMaps }}
+      {{- if .enabled }}
       - name: {{ .name }}
         configMap:
           name: {{ .name }}
-      {{ end }}
-      {{ end }}
-      {{ end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
   volumeClaimTemplates:
   - metadata:
       name: pvc
