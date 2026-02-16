@@ -13,4 +13,6 @@ else
 fi
 
 echo "Initializing into tmp dir for downstream processing..."
+# cleanup old tmp in case it had leftovers
+rm -rf "$HOME/.tmp"
 $CHAIN_BINARY init --chain-id $CHAIN_ID $NODE_NAME --home "$HOME/.tmp"

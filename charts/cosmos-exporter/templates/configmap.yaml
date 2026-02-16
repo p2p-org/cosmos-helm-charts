@@ -1,7 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "cosmos-exporter.fullname" . }}-config
+  {{- if .Values.localNodeID }}
+    name: {{ include "cosmos-exporter.fullname" . }}-config-{{ .Values.localNodeID }}
+  {{- else }}
+    name: {{ include "cosmos-exporter.fullname" . }}-config
+  {{- end }}
   labels:
     {{- include "cosmos-exporter.labels" . | nindent 4 }}
 data:
@@ -22,40 +26,17 @@ data:
         {{- else }}
         validators: []
         {{- end }}
+     {{- with .Values.localNodeID }}
       nodes:
         rpc:
-          {{- if .Values.localNodes.enabled }}
-          {{- range $i := until (int .Values.localNodes.replicas) }}
-          - name: {{ $.Release.Name }}-{{ $i }}
-            url: http://{{ $.Release.Name }}-headless-{{ $i }}:26657
+          - name: {{ $.Release.Name }}-{{ . }}
+            url: http://{{ $.Release.Name }}-headless-{{ . }}:26657
             healthEndpoint: /status
-          {{- end }}
-          {{- else if and .Values.config.nodes.rpc (ne (len .Values.config.nodes.rpc) 0) }}
-          {{- range .Values.config.nodes.rpc }}
-          - name: {{ .name }}
-            url: {{ .url }}
-            healthEndpoint: {{ .healthEndpoint }}
-          {{- end }}
-          {{- else }}
-          []
-          {{- end }}
         lcd:
-          {{- if .Values.localNodes.enabled }}
-          {{- range $i := until (int .Values.localNodes.replicas) }}
-          - name: {{ $.Release.Name }}-{{ $i }}
-            url: http://{{ $.Release.Name }}-headless-{{ $i }}:1317
+          - name: {{ $.Release.Name }}-{{ . }}
+            url: http://{{ $.Release.Name }}-headless-{{ . }}:1317
             healthEndpoint: /cosmos/base/node/v1beta1/status
-          {{- end }}
-          {{- else if and .Values.config.nodes.lcd (ne (len .Values.config.nodes.lcd) 0) }}
-          {{- range .Values.config.nodes.lcd }}
-          - name: {{ .name }}
-            url: {{ .url }}
-            healthEndpoint: {{ .healthEndpoint }}
-          {{- end }}
-          {{- else }}
-          []
-          {{- end }}
-
+      {{- end }}
     node:
       client: {{ .Values.config.node.client }}
       tendermint:
