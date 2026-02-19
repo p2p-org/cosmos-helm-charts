@@ -9,7 +9,7 @@ toolkitImageTag: "tag"
 # Image pull policy for all containers (defaults to "Always" if not set)
 imagePullPolicy: "Always"
 imagePullSecrets: ""
-replicas: ""
+replicas: "1"
 maxUnavailable: ""
 storage: "300Gi"
 storageClassName: ""
@@ -134,7 +134,7 @@ blch:
   id: ""
   network: ""
   name: ""
-  binary: ""
+  binary: "gaiad"
   skipInvariants: ""
   # Disable the --api.address flag in the start command (useful for chains like Cysic that don't support this flag)
   # Set to true for chains that use --api.enable instead, or configure API address in app.toml
@@ -305,3 +305,11 @@ cosmos-exporter:
     # then localNodes.replicas: *replicas
     replicas: 0
   nodeSelector: {}
+
+## Vault Injection
+vaultInjection:
+  enabled: false
+  vaultBasePath: ""
+  secretName: ""
+  secretKey: ""
+  role: ""

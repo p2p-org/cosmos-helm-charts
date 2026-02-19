@@ -45,6 +45,9 @@ metadata:
   namespace: {{ $.Release.Namespace | quote }}
   labels:
     {{- include "blch-node.labels" $ | nindent 4 }}
+    {{- with $.Values.service.p2p.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- if or $.Values.p2pDNSNameEnabled $.Values.service.p2p.annotations }}
   annotations:
   {{- with $.Values.service.p2p.annotations  }}
