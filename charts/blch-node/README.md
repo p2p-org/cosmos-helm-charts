@@ -15,6 +15,7 @@ This chart deploys a complete node including:
 - Ingress with configrable endpoints (RPC, gRPC, API, WS, etc)
 - Optional HTTPRoute support for Gateway API (when `useGatewayAPI: true`)
 - Optional sentry mode (remote signer is required and not included in this chart)
+- Optional Hashicorp Vault secret injection
 - Optional prometheus monitoring for:
   - Default CometBFT metrics
   - Latest block height compared to a given public RPC endpoint
@@ -77,8 +78,6 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | blch.pruning.strategy | string | `"custom"` |  |
 | blch.skipInvariants | bool | `true` |  |
 | blockRollbackInitContainer.enabled | bool | `false` |  |
-| cosmos-exporter.enabled | bool | `false` |  |
-| cosmos-exporter.nodeSelector | bool | `false` | `{}` |
 | debugInitContainer.enabled | bool | `false` |  |
 | debugSidecar.enabled | bool | `false` |  |
 | endpoints.grpc.additionalIngressAnnotations | object | `{}` |  |
