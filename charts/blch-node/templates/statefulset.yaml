@@ -12,9 +12,6 @@ metadata:
 spec:
   serviceName: {{ .Release.Name }}-rpc
   replicas: {{ .Values.replicas }}
-  {{- if .Values.vaultInjection.enabled }}
-  serviceAccountName: {{ .Release.Name }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "blch-node.labels" . | nindent 6 }}
@@ -42,6 +39,9 @@ spec:
       labels:
         {{- include "blch-node.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.vaultInjection.enabled }}
+      serviceAccount: {{ .Release.Name }}
+      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         - name: {{ . }}
