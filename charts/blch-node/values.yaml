@@ -292,24 +292,16 @@ endpoints:
     servicePort: 1317
     additionalIngressAnnotations: {}
 
-# Cosmos Exporter configuration
-# Set enabled to false to disable the cosmos-exporter subchart
-cosmos-exporter:
-  enabled: false
-  # Generate local node configurations from Kubernetes services
-  # When enabled, dynamically generates node configs from the provided headless K8s services
-  localNodes:
-    enabled: false
-    # Use YAML anchor to pass replicas:
-    # replicas: &replicas 3
-    # then localNodes.replicas: *replicas
-    replicas: 0
-  nodeSelector: {}
-
 ## Vault Injection
+## To inject secrets from Hashicorp Vault, set vaultInjection.enabled to true and provide the following values:
+## - vaultInjection.secretName: The name of the secret in Vault
+## - vaultInjection.secretKey: The key of the secret in Vault
+## - global.vaultBasePath: The base path in Vault
+## - global.vaultRole: The role to use to access the Vault secret
 vaultInjection:
   enabled: false
-  vaultBasePath: ""
   secretName: ""
   secretKey: ""
-  role: ""
+global:
+  vaultBasePath: ""
+  vaultRole: ""
