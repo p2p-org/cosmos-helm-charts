@@ -3,12 +3,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-metrics
+  name: {{ include "blch-node.fullname" . }}-metrics
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
 spec:
   selector:
-    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "blch-node.fullname" . }}
   ports:
     - name: metrics
       port: 26660
@@ -17,14 +17,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-sdk-metrics
+  name: {{ include "blch-node.fullname" . }}-sdk-metrics
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "blch-node.fullname" . }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
@@ -37,7 +37,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-external-latest-height
+  name: {{ include "blch-node.fullname" . }}-external-latest-height
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
@@ -62,7 +62,7 @@ spec:
       replacement: {{ .Release.Namespace }}
     - sourceLabels: []
       targetLabel: cosmos_node
-      replacement: {{ .Release.Name }}
+      replacement: {{ include "blch-node.fullname" . }}
     - sourceLabels: []
       targetLabel: rpc_endpoint
       replacement: {{ .Values.monitoring.publicRpcEndpoint }}
@@ -71,7 +71,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-internal-latest-height
+  name: {{ include "blch-node.fullname" . }}-internal-latest-height
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack
@@ -96,7 +96,7 @@ spec:
       replacement: {{ .Release.Namespace }}
     - sourceLabels: []
       targetLabel: cosmos_node
-      replacement: {{ .Release.Name }}
+      replacement: {{ include "blch-node.fullname" . }}
     - sourceLabels: []
       targetLabel: rpc_endpoint
       replacement: {{ include "host" (dict "context" $ "endpointName" "rpc") }}
@@ -104,7 +104,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Release.Name }}-rpc-endpoint
+  name: {{ include "blch-node.fullname" . }}-rpc-endpoint
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
     release: kube-prometheus-stack

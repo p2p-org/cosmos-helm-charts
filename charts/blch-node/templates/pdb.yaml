@@ -3,12 +3,12 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ .Release.Name }}-pdb
+  name: {{ include "blch-node.fullname" . }}-pdb
   labels:
 {{ include "blch-node.labels" . | nindent 4 }}
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "blch-node.fullname" . }}
 {{- end }}

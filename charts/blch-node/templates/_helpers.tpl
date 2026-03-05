@@ -1,5 +1,19 @@
+{{/*
+Create a default fully qualified app name.
+Priority: 1) fullNameOverride, 2) .Release.Name if useShortenedChartName, 3) .Release.Name-.Chart.Name
+*/}}
+{{- define "blch-node.fullname" -}}
+{{- if .Values.fullNameOverride }}
+{{- .Values.fullNameOverride | trunc 63 | trimSuffix "-" }}
+{{- else if .Values.useShortenedChartName }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
 {{- define "blch-node.labels" -}}
-app.kubernetes.io/name: {{ .Release.Name }}
+app.kubernetes.io/name: {{ include "blch-node.fullname" . }}
 {{- $labels := .Values.labels }}
 {{- if not $labels }}
 {{- $labels = .Values.commonLabels }}
@@ -94,11 +108,12 @@ Endpoints configuration
 {{- define "host" -}}
 {{- $context := .context -}}
 {{- $endpointName := .endpointName -}}
+{{- $name := include "blch-node.fullname" $context }}
 {{- if (index $context.Values.endpoints $endpointName).host }}
 {{- printf "%s" (index $context.Values.endpoints $endpointName).host }}
 {{- else if eq $endpointName "rpc" }}
-{{- printf "%s-%s.%s" $context.Release.Name $context.Values.blch.nodeType $context.Values.endpointsBaseDomain }}
+{{- printf "%s-%s.%s" $name $context.Values.blch.nodeType $context.Values.endpointsBaseDomain }}
 {{- else }}
-{{- printf "%s-%s-%s.%s" $context.Release.Name $context.Values.blch.nodeType $endpointName $context.Values.endpointsBaseDomain }}
+{{- printf "%s-%s-%s.%s" $name $context.Values.blch.nodeType $endpointName $context.Values.endpointsBaseDomain }}
 {{- end -}}
 {{- end -}}

@@ -1,5 +1,12 @@
 # Default values for RPC nodes
 
+# Naming: resource names (StatefulSet, Services, ConfigMaps, etc.)
+# - Default: full chart name (Release.Name-Chart.Name), e.g. "myrelease-blch-node"
+# - useShortenedChartName: true → use only .Release.Name, e.g. "myrelease"
+# - fullNameOverride: "my-custom-name" → use this exact name (overrides the above)
+fullNameOverride: ""
+useShortenedChartName: false
+
 ## Pod Specs
 image: "example-registry/image-name"
 imageTag: "tag"

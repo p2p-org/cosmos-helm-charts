@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "blch-node.fullname" . }}
   labels:
     {{- include "blch-node.labels" . | nindent 4 }}
   {{- if .Values.nodeAnnotations  }}
@@ -10,7 +10,7 @@ metadata:
     {{- toYaml .Values.nodeAnnotations | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ .Release.Name }}-rpc
+  serviceName: {{ include "blch-node.fullname" . }}-rpc
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
@@ -25,9 +25,9 @@ spec:
         {{- end }}
         {{- if .Values.vaultInjection.enabled }}
         vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/agent-inject-secret-{{ .Values.vaultInjection.secretKey }}: {{ .Values.global.vaultBasePath }}/{{ $.Release.Namespace }}/{{ .Release.Name }}/{{ .Values.vaultInjection.secretName }}
+        vault.hashicorp.com/agent-inject-secret-{{ .Values.vaultInjection.secretKey }}: {{ .Values.global.vaultBasePath }}/{{ $.Release.Namespace }}/{{ include "blch-node.fullname" . }}/{{ .Values.vaultInjection.secretName }}
         vault.hashicorp.com/agent-inject-template-{{ .Values.vaultInjection.secretKey }}: |
-          {{`{{- with secret "`}}{{ .Values.global.vaultBasePath }}/{{ .Release.Namespace }}/{{ .Release.Name }}/{{ .Values.vaultInjection.secretName }}{{`" }}
+          {{`{{- with secret "`}}{{ .Values.global.vaultBasePath }}/{{ .Release.Namespace }}/{{ include "blch-node.fullname" . }}/{{ .Values.vaultInjection.secretName }}{{`" }}
           {{ index .Data.data "`}}{{ .Values.vaultInjection.secretKey }}{{`" }}
           {{- end }}`}}
         vault.hashicorp.com/role: {{ .Values.global.vaultRole }}
@@ -40,7 +40,7 @@ spec:
         {{- include "blch-node.labels" . | nindent 8 }}
     spec:
       {{- if .Values.vaultInjection.enabled }}
-      serviceAccount: {{ .Release.Name }}
+      serviceAccount: {{ include "blch-node.fullname" . }}
       {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -328,14 +328,14 @@ spec:
               - key: app.kubernetes.io/name
                 operator: In
                 values:
-                - {{ .Release.Name }}
+                - {{ include "blch-node.fullname" . }}
             topologyKey: "kubernetes.io/hostname"
           - labelSelector:
               matchExpressions:
               - key: app.kubernetes.io/name
                 operator: In
                 values:
-                - {{ .Release.Name }}
+                - {{ include "blch-node.fullname" . }}
             topologyKey: "topology.kubernetes.io/zone"
       {{- end }}
         nodeAffinity:
@@ -364,7 +364,7 @@ spec:
         emptyDir: {}
       - name: vol-config
         configMap:
-          name: {{ .Release.Name }}-config-overlay
+          name: {{ include "blch-node.fullname" . }}-config-overlay
           defaultMode: 420
           items:
           - key: config-overlay-defaults.toml
@@ -373,8 +373,8 @@ spec:
             path: app-overlay-defaults.toml
           {{- if .Values.p2pDNSNameEnabled }}
           {{- range $i := until (int .Values.replicas) }}
-          - key: config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml
-            path: config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml
+          - key: config-overlay-defaults-{{ include "blch-node.fullname" $ }}-{{ $i }}.toml
+            path: config-overlay-defaults-{{ include "blch-node.fullname" $ }}-{{ $i }}.toml
           {{- end }}
           {{- end }}
           {{- with .Values.configOverrides }}
@@ -384,8 +384,8 @@ spec:
           {{- end }}
           {{- with .pernode }}
           {{- range . }}
-          - key: config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
-            path: config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+          - key: config-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml
+            path: config-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml
           {{- end }}
           {{- end }}
           {{- end }}
@@ -396,14 +396,14 @@ spec:
           {{- end }}
           {{- with .pernode }}
           {{- range . }}
-          - key: app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
-            path: app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml
+          - key: app-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml
+            path: app-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml
           {{- end }}
           {{- end }}
           {{- end }}
       - name: vol-scripts
         configMap:
-          name: {{ .Release.Name }}-scripts
+          name: {{ include "blch-node.fullname" . }}-scripts
           defaultMode: 0755
       {{- if .Values.sidecar.configMaps }}
       {{- range .Values.sidecar.configMaps }}

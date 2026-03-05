@@ -30,7 +30,7 @@ spec:
           env:
             {{- if ne (toString .Values.localNodeID) "" }}
             - name: NODE_NAME
-              value: {{ $.Release.Name }}-{{ .Values.localNodeID }}
+              value: {{ .Values.localNodeName | default $.Release.Name }}-{{ .Values.localNodeID }}
             {{- end }}
             {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}

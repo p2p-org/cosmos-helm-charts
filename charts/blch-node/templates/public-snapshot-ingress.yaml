@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-public-snapshot
+  name: {{ include "blch-node.fullname" . }}-public-snapshot
   labels:
   {{ include "blch-node.labels" . | nindent 4 }}
   annotations:
@@ -20,11 +20,11 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ .Release.Name }}-public-snapshot
+            name: {{ include "blch-node.fullname" . }}-public-snapshot
             port:
               number: 443
   tls:
   - hosts:
     - {{ .Values.blch.name }}-{{ .Values.blch.network }}-{{ .Values.blch.nodeType }}-snapshots.{{ .Values.endpointsBaseDomain }}
-    secretName: {{ .Release.Name }}-public-snapshot-tls
+    secretName: {{ include "blch-node.fullname" . }}-public-snapshot-tls
 {{- end }}

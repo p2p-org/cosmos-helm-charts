@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-config-overlay
+  name: {{ include "blch-node.fullname" . }}-config-overlay
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "blch-node.labels" . | nindent 4 }}
@@ -24,9 +24,9 @@ data:
     {{- end }}
   {{- if .Values.p2pDNSNameEnabled }}
   {{- range $i := until (int .Values.replicas) }}
-  config-overlay-defaults-{{ $.Release.Name }}-{{ $i }}.toml: |
+  config-overlay-defaults-{{ include "blch-node.fullname" $ }}-{{ $i }}.toml: |
     [p2p]
-    external_address = "{{ $.Release.Name }}-{{ $i }}.{{ $.Values.endpointsBaseDomain }}:26656"
+    external_address = "{{ include "blch-node.fullname" $ }}-{{ $i }}.{{ $.Values.endpointsBaseDomain }}:26656"
   {{- end }}
   {{- end }}
   {{- with .Values.configOverrides }}
@@ -36,7 +36,7 @@ data:
   {{- end }}
   {{- with .pernode }}
   {{- range . }}
-  config-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml: |
+  config-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml: |
     {{- .overrides | nindent 4 }}
   {{- end }}
   {{- end }}
@@ -58,7 +58,7 @@ data:
   {{- end }}
   {{- with .pernode }}
   {{- range . }}
-  app-overlay-overrides-{{ $.Release.Name }}-{{ .podOrdinal }}.toml: |
+  app-overlay-overrides-{{ include "blch-node.fullname" $ }}-{{ .podOrdinal }}.toml: |
     {{- .overrides | nindent 4 }}
   {{- end }}
   {{- end }}
