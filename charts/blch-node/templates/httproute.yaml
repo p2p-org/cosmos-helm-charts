@@ -17,7 +17,7 @@
 {{- $servicePort = $.Values.service.ports.rpc.port }}
 {{- end }}
 {{- end }}
-{{- $name := printf "%s-%s" $.Release.Name $key }}
+{{- $name := printf "%s-%s" (include "blch-node.fullname" $) $key }}
 {{- $host := include "host" (dict "context" $ "endpointName" $key) }}
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
@@ -49,7 +49,7 @@ spec:
         type: PathPrefix
         value: {{ .path }}
     backendRefs:
-    - name: {{ $.Release.Name }}-rpc
+    - name: {{ include "blch-node.fullname" $ }}-rpc
       port: {{ default $servicePort .servicePort }}
       kind: Service
       weight: 1
@@ -60,7 +60,7 @@ spec:
         type: PathPrefix
         value: {{ default "/" $val.path }}
     backendRefs:
-    - name: {{ $.Release.Name }}-rpc
+    - name: {{ include "blch-node.fullname" $ }}-rpc
       group: ''
       port: {{ $servicePort }}
       kind: Service
