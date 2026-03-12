@@ -175,14 +175,14 @@ spec:
         args:
         - -c
         - |
-          if cat {{ .Values.unwrapVaultSecret.secretPath }} | grep -q data; then
+          if cat {{ .Values.unwrapVaultSecret.secretPath }} | grep -q {{ .Values.unwrapVaultSecret.secretKey }}; then
             echo "parsing data"
             tmp=$(mktemp)
             secret={{ .Values.unwrapVaultSecret.secretPath }}
             jq -r '{{ .Values.unwrapVaultSecret.secretKey }}' $secret > "$tmp" && mv "$tmp" $secret
             chown {{ .Values.runsAs.user }}:{{ .Values.runsAs.group }} $secret
           else
-            echo "parsing not needed"
+            echo "The provided key {{ .Values.unwrapVaultSecret.secretKey }} not found in secret {{ .Values.unwrapVaultSecret.secretPath }}"
           fi
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
