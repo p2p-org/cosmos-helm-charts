@@ -49,6 +49,22 @@ debugSidecar:
 # nodeAnnotations: {}
 # priorityClassName
 
+# Runs as configuration for the pod
+runsAs:
+  enabled: false
+  user: 10001
+  group: 10001
+# Unwrap Vault Secret, needed for injected Vault secrets with multiple keys
+unwrapVaultSecret:
+  enabled: false
+  secretPath: ""
+  secretKey: ""
+
+# Service Account configuration, if you need to use a custom service account
+serviceAccount:
+  enabled: false
+  name: ""
+
 # Sidecar container configuration for the CosmosFullNode
 sidecar:
   enabled: false

@@ -39,8 +39,17 @@ spec:
       labels:
         {{- include "blch-node.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.runsAs.enabled }}
+      securityContext:
+        runAsUser: {{ .Values.runsAs.user }}
+        runAsGroup: {{ .Values.runsAs.group }}
+        fsGroup: {{ .Values.runsAs.group }}
+      {{- end }}
       {{- if .Values.vaultInjection.enabled }}
       serviceAccount: {{ include "blch-node.fullname" . }}
+      {{- end }}
+      {{- if .Values.serviceAccountName}}
+      serviceAccount: {{ .Values.serviceAccountName }}
       {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -83,7 +92,6 @@ spec:
         volumeMounts:
         {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
       {{- end }}
-
       # Address book init - downloads address book
       {{- with .Values.blch.addrbookURL }}
       - name: addrbook-init
@@ -158,6 +166,28 @@ spec:
           volumeMounts:
           {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
         {{- end }}
+      {{- end }}
+      {{- if .Values.unwrapVaultSecret.enabled }}
+      - name: unwrap-vault-secret
+        image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        command: ["sh"]
+        args:
+        - -c
+        - |
+          if cat {{ .Values.unwrapVaultSecret.secretPath }} | grep -q data; then
+            echo "parsing data"
+            tmp=$(mktemp)
+            secret={{ .Values.unwrapVaultSecret.secretPath }}
+            jq -r '{{ .Values.unwrapVaultSecret.secretKey }}' $secret > "$tmp" && mv "$tmp" $secret
+            chown {{ .Values.runsAs.user }}:{{ .Values.runsAs.group }} $secret
+          else
+            echo "parsing not needed"
+          fi
+        env:
+        {{- include "blch-node.containerEnv" . | nindent 10 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
       {{- end }}
       containers:
       - name: node
