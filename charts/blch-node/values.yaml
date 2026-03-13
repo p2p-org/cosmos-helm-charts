@@ -24,6 +24,19 @@ storageClassName: ""
 nodeSelectorKey: ""
 # [Optional] Tolerations for the pod
 tolerations: []
+# [Optional] Full affinity override (takes precedence over nodeSelectorKey/nodeSelectorLabel)
+# Use this for advanced scheduling like pinning to specific hostnames
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: kubernetes.io/hostname
+#               operator: In
+#               values:
+#                 - node-1
+#                 - node-2
+affinity: {}
 # [Optional] Additional matches for node affinity
 # affinityAdditionalMatches: {}
 # [Optional] Label to be used for node selector

@@ -347,7 +347,10 @@ spec:
       tolerations:
         {{ toYaml .Values.tolerations | nindent 8 }}
       {{- end }}
-      {{- if and .Values.nodeSelectorKey (ne .Values.nodeSelectorKey "") }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- else if and .Values.nodeSelectorKey (ne .Values.nodeSelectorKey "") }}
       affinity:
       {{- if .Values.podAntiAffinityPerNode }}
         podAntiAffinity:
