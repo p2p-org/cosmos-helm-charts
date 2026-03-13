@@ -115,6 +115,23 @@ service:
     port: 26656
     containerPort: 26656
     protocol: TCP
+    # [Optional] Static LoadBalancer IPs per replica (list indexed by replica number)
+    # Useful for chains requiring IP whitelisting (e.g., Cysic, permissioned networks)
+    #
+    # Behavior:
+    # | loadBalancerIPs value                    | Result                                        |
+    # |------------------------------------------|-----------------------------------------------|
+    # | [] (empty/default)                       | Dynamic IP allocation (current behavior)      |
+    # | ["1.2.3.4"] with 1 replica               | Static IP for replica-0                       |
+    # | ["1.2.3.4", "5.6.7.8"] with 2 replicas   | Static IPs for both                           |
+    # | ["1.2.3.4"] with 2 replicas              | Static IP for replica-0, dynamic for replica-1|
+    # | Not set at all                           | Dynamic IP allocation                         |
+    #
+    # Example:
+    # loadBalancerIPs:
+    #   - "170.23.176.62"  # replica-0
+    #   - "170.23.176.61"  # replica-1
+    loadBalancerIPs: []
   # Allow endpoints to be available while pods are not ready during sync
   publishSvcDuringSync: true
   type: ClusterIP
