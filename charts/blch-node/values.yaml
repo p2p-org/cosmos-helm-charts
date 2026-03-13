@@ -24,8 +24,13 @@ storageClassName: ""
 nodeSelectorKey: ""
 # [Optional] Tolerations for the pod
 tolerations: []
-# [Optional] Full affinity override (takes precedence over nodeSelectorKey/nodeSelectorLabel)
-# Use this for advanced scheduling like pinning to specific hostnames
+# [Optional] Custom affinity configuration (can be combined with podAntiAffinityPerNode)
+# When used with podAntiAffinityPerNode: true, the chart merges both:
+# - podAntiAffinityPerNode adds podAntiAffinity (pods on different nodes/zones)
+# - affinity.nodeAffinity restricts which nodes pods can run on
+#
+# Example - pin pods to specific hostnames while ensuring they're on different nodes:
+# podAntiAffinityPerNode: true
 # affinity:
 #   nodeAffinity:
 #     requiredDuringSchedulingIgnoredDuringExecution:
