@@ -65,6 +65,12 @@ spec:
   {{- with $.Values.service.p2p.publishNotReadyAddresses }}
   publishNotReadyAddresses: {{ . }}
   {{- end }}
+  {{- if and $.Values.service.p2p.loadBalancerIPs (gt (len $.Values.service.p2p.loadBalancerIPs) $i) }}
+  {{- $lbIP := index $.Values.service.p2p.loadBalancerIPs $i }}
+  {{- if $lbIP }}
+  loadBalancerIP: {{ $lbIP }}
+  {{- end }}
+  {{- end }}
   ports:
     - name: p2p
       port: {{ $.Values.service.p2p.port }}
