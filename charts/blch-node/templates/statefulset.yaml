@@ -180,7 +180,6 @@ spec:
             tmp=$(mktemp)
             secret={{ .Values.unwrapVaultSecret.secretPath }}
             jq -r '{{ .Values.unwrapVaultSecret.secretKey }}' $secret > "$tmp" && mv "$tmp" $secret
-            chown {{ .Values.runsAs.user }}:{{ .Values.runsAs.group }} $secret
           else
             echo "The provided key {{ .Values.unwrapVaultSecret.secretKey }} not found in secret {{ .Values.unwrapVaultSecret.secretPath }}"
           fi
