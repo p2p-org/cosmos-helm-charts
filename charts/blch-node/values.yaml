@@ -41,6 +41,7 @@ tolerations: []
 #               values:
 #                 - node-1
 #                 - node-2
+#
 affinity: {}
 # [Optional] Additional matches for node affinity
 # affinityAdditionalMatches: {}
