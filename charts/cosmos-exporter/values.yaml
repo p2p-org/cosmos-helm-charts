@@ -197,7 +197,7 @@ affinity: {}
 
 tolerations: []
 
-nodeSelector: {}
+# nodeSelector: {}
 
 # For node mode when full nodes are running and exposed as local Kubernetes services to generate rpc/lcd endpoints configs dynamically
 # If localNodeID is not set, the endpoints will not be generated.
