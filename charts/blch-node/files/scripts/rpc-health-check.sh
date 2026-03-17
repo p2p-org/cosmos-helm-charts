@@ -59,7 +59,7 @@ if echo "$response" | grep -q '"catching_up":\s*true'; then
 fi
 
 # Verify we got a valid status response
-if ! echo "$response" | grep -q '"result"'; then
+if ! echo "$response" | grep -q '"catching_up":\s*false'; then
     log_error "Unexpected status response: $response"
     exit 1
 fi
