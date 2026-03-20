@@ -41,9 +41,9 @@ spec:
     spec:
       {{- if .Values.runAs.enabled }}
       securityContext:
-        runAsUser: {{ .Values.runsAs.user }}
-        runAsGroup: {{ .Values.runsAs.group }}
-        fsGroup: {{ .Values.runsAs.group }}
+        runAsUser: {{ .Values.runAs.user }}
+        runAsGroup: {{ .Values.runAs.group }}
+        fsGroup: {{ .Values.runAs.group }}
       {{- end }}
       {{- if .Values.vaultInjection.enabled }}
       serviceAccount: {{ include "blch-node.fullname" . }}
