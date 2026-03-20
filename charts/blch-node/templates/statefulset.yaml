@@ -53,7 +53,7 @@ spec:
       {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ . }}
+        {{- toYaml . | nindent 10 }}
       {{- end }}
       initContainers:
       - name: clean-init
