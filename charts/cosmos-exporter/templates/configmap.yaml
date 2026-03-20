@@ -27,11 +27,11 @@ data:
         rpc:
           - name: {{ .Values.localNodeName | default $.Release.Name }}-{{ .Values.localNodeID }}
             url: http://{{ .Values.localNodeName | default $.Release.Name }}-headless-{{ .Values.localNodeID }}:26657
-            healthEndpoint: /status
+            healthEndpoint: {{ .Values.localNodeRpcHealthEndpoint }}
         lcd:
           - name: {{ .Values.localNodeName | default $.Release.Name }}-{{ .Values.localNodeID }}
             url: http://{{ .Values.localNodeName | default $.Release.Name }}-headless-{{ .Values.localNodeID }}:1317
-            healthEndpoint: /cosmos/base/node/v1beta1/status
+            healthEndpoint: {{ .Values.localNodeLcdHealthEndpoint }}
       {{- end }}
     node:
       client: {{ .Values.config.node.client }}

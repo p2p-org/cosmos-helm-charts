@@ -39,7 +39,7 @@ spec:
       labels:
         {{- include "blch-node.labels" . | nindent 8 }}
     spec:
-      {{- if .Values.runsAs.enabled }}
+      {{- if .Values.runAs.enabled }}
       securityContext:
         runAsUser: {{ .Values.runsAs.user }}
         runAsGroup: {{ .Values.runsAs.group }}
@@ -58,7 +58,7 @@ spec:
       initContainers:
       - name: clean-init
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["sh"]
         args:
         - -c
@@ -71,7 +71,7 @@ spec:
       # Chain init - initializes the chain
       - name: chain-init
         image: {{ .Values.image }}:{{ .Values.imageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["/scripts/chain-init.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
@@ -96,7 +96,7 @@ spec:
       {{- with .Values.blch.addrbookURL }}
       - name: addrbook-init
         image: {{ $.Values.toolkitImage }}:{{ $.Values.toolkitImageTag }}
-        imagePullPolicy: {{ $.Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ $.Values.imagePullPolicy }}
         command: ["/scripts/addrbook-init.sh"]
         args:
         - {{ . | quote }}
@@ -110,7 +110,7 @@ spec:
       # Config merge - merges configuration files
       - name: config-merge
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["/scripts/config-merge.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
@@ -121,7 +121,7 @@ spec:
       {{- with .Values.blch.snapshotURL }}
       - name: snapshot-restore
         image: {{ $.Values.toolkitImage }}:{{ $.Values.toolkitImageTag }}
-        imagePullPolicy: {{ $.Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ $.Values.imagePullPolicy }}
         command: ["/scripts/snapshot-restore.sh"]
         args:
         - {{ . | quote }}
@@ -135,7 +135,7 @@ spec:
       # Block rollback init container - rolls back blockchain state
       - name: block-rollback
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["sh"]
         args:
         - -c
@@ -150,7 +150,7 @@ spec:
       # Debug init container - keeps container running for debugging
       - name: debug-init
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["/scripts/keep-running.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
@@ -170,7 +170,7 @@ spec:
       {{- if .Values.unwrapVaultSecret.enabled }}
       - name: unwrap-vault-secret
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["sh"]
         args:
         - -c
@@ -248,7 +248,7 @@ spec:
         {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
       - name: healthcheck
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["/scripts/keep-running.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
@@ -278,7 +278,7 @@ spec:
       # Debug sidecar container - keeps container running for debugging
       - name: debug-sidecar
         image: {{ .Values.toolkitImage }}:{{ .Values.toolkitImageTag }}
-        imagePullPolicy: {{ .Values.imagePullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command: ["/scripts/keep-running.sh"]
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
