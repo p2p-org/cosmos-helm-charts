@@ -13,8 +13,8 @@ imageTag: "tag"
 # Toolkit image used for init containers and healthcheck sidecar
 toolkitImage: "example-registry/image-name"
 toolkitImageTag: "tag"
-# Image pull policy for all containers (defaults to "Always" if not set)
-imagePullPolicy: "Always"
+# Image pull policy for all containers 
+imagePullPolicy: "IfNotPresent"
 imagePullSecrets: ""
 replicas: "1"
 maxUnavailable: ""
@@ -69,7 +69,7 @@ debugSidecar:
 # priorityClassName
 
 # Runs as configuration for the pod
-runsAs:
+runAs:
   enabled: false
   user: 10001
   group: 10001

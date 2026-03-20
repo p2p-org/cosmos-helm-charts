@@ -205,3 +205,5 @@ tolerations: []
 # localNodeName: optional override for the base name; if not set, .Release.Name is used for node name and headless service lookup
 localNodeName: ""
 localNodeID: ""
+localNodeRpcHealthEndpoint: "/health"
+localNodeLcdHealthEndpoint: "/cosmos/base/node/v1beta1/status"
