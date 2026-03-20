@@ -15,7 +15,9 @@ toolkitImage: "example-registry/image-name"
 toolkitImageTag: "tag"
 # Image pull policy for all containers 
 imagePullPolicy: "IfNotPresent"
-imagePullSecrets: ""
+# imagePullSecrets:
+#   - name: "my-secret"
+#   - name: "my-secret-2"
 replicas: "1"
 maxUnavailable: ""
 storage: "300Gi"
