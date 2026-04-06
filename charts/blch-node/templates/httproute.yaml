@@ -1,5 +1,5 @@
 {{- if .Values.useGatewayAPI }}
-{{- if and .Values.gateway.name .Values.gateway.namespace .Values.gateway.listeners }}
+{{- if and .Values.gateway.name .Values.gateway.namespace }}
 {{- range $key, $val := .Values.endpoints }}
 {{- $enabled := default true $val.enabled }}
 {{- if $enabled }}
@@ -23,7 +23,7 @@
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
-  name: {{ default $name $val.ingressName }}-nlb
+  name: {{ default $name $val.ingressName }}
   labels:
 {{ include "blch-node.labels" $ | nindent 4 }}
   {{- with $val.additionalIngressAnnotations }}
@@ -32,6 +32,7 @@ metadata:
   {{- end }}
 spec:
   parentRefs:
+  {{- if $.Values.gateway.listeners }}
   {{- range $.Values.gateway.listeners }}
   - name: {{ $.Values.gateway.name }}
     group: gateway.networking.k8s.io
@@ -39,6 +40,13 @@ spec:
     namespace: {{ $.Values.gateway.namespace }}
     sectionName: {{ . }}
   {{- end }}
+  {{- else }}
+  - name: {{ $.Values.gateway.name }}
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    namespace: {{ $.Values.gateway.namespace }}
+  {{- end }}
+
   hostnames:
   - {{ $host | quote }}
   rules:
