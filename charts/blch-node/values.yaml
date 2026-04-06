@@ -75,6 +75,7 @@ runAs:
   enabled: false
   user: 10001
   group: 10001
+
 # Unwrap Vault Secret, needed for injected Vault secrets with multiple keys
 unwrapVaultSecret:
   enabled: false
