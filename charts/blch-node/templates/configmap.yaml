@@ -43,7 +43,7 @@ data:
   {{- end }}
   app-overlay-defaults.toml: |
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
-    {{- if .Values.nodeType == "archive"}}
+    {{- if eq .Values.blch.nodeType "archive"}}
     pruning = "nothing"
     {{- else if .Values.blch.pruning.strategy }}
     pruning = {{ .Values.blch.pruning.strategy }}
@@ -58,7 +58,6 @@ data:
     {{- end}}
     {{- if .Values.blch.pruning.keepEvery }}
     pruning-keep-every = {{ .Values.blch.pruning.keepEvery | quote }}
-    {{- end }}
     {{- end }}
   {{- with .Values.appOverrides }}
   {{- with .allnodes }}
