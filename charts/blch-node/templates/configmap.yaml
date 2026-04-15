@@ -45,10 +45,8 @@ data:
     minimum-gas-prices = {{ .Values.blch.minGasPrice | quote }}
     {{- if eq .Values.blch.nodeType "archive"}}
     pruning = "nothing"
-    {{- else if .Values.blch.pruning.strategy }}
-    pruning = {{ .Values.blch.pruning.strategy }}
-    {{- else }}
-    pruning = "default"
+    {{- else if .Values.blch.pruning.strategy | quote }}
+    pruning = {{ .Values.blch.pruning.strategy | quote }}
     {{- end }}
     {{- if .Values.blch.pruning.keepRecent }}
     pruning-keep-recent = {{ .Values.blch.pruning.keepRecent | quote }}
