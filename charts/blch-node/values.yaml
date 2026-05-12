@@ -22,16 +22,23 @@ replicas: "1"
 maxUnavailable: ""
 storage: "300Gi"
 storageClassName: ""
-# Key to be used for node affinity
-nodeSelectorKey: ""
 # [Optional] Tolerations for the pod
 tolerations: []
-# [Optional] Custom affinity configuration (can be combined with podAntiAffinityPerNode)
-# When used with podAntiAffinityPerNode: true, the chart merges both:
-# - podAntiAffinityPerNode adds podAntiAffinity (pods on different nodes/zones)
-# - affinity.nodeAffinity restricts which nodes pods can run on
+
+# [Optional] Run one pod per node (hostname-scoped podAntiAffinity).
+# Overrides any user-supplied affinity.podAntiAffinity.
+podAntiAffinityPerNode: true
+
+# [Optional] Co-locate pods in the same region (region-scoped podAffinity).
+# Overrides any user-supplied affinity.podAffinity.
+podAffinityPerRegion: false
+
+# [Optional] Custom affinity configuration.
+# - nodeAffinity is always applied.
+# - podAntiAffinity is only applied when podAntiAffinityPerNode is false.
+# - podAffinity is only applied when podAffinityPerRegion is false.
 #
-# Example - pin pods to specific hostnames while ensuring they're on different nodes:
+# Example - pin pods to specific hostnames while keeping the per-node anti-affinity:
 # podAntiAffinityPerNode: true
 # affinity:
 #   nodeAffinity:
@@ -43,14 +50,10 @@ tolerations: []
 #               values:
 #                 - node-1
 #                 - node-2
-#
 affinity: {}
-# [Optional] Additional matches for node affinity
-# affinityAdditionalMatches: {}
+
 # [Optional] Label to be used for node selector
 # nodeSelectorLabel: {}
-# [Optional] Enable podAntiAffinity to run only one pod per hostname
-podAntiAffinityPerNode: true
 volumeRetainPolicy: "Delete"
 # Allow custom rollingUpdate strategy managed by CI/CD (Not part of this chart)
 rollingUpdateEnabled: false
