@@ -347,9 +347,14 @@ spec:
       tolerations:
         {{ toYaml .Values.tolerations | nindent 8 }}
       {{- end }}
-      {{- if or .Values.affinity .Values.podAntiAffinityPerNode (and .Values.nodeSelectorKey (ne .Values.nodeSelectorKey "")) }}
+      {{- $a := .Values.affinity | default dict }}
+      {{- if or $a .Values.podAntiAffinityPerNode .Values.podAffinityPerRegion }}
       affinity:
-      {{- if .Values.podAntiAffinityPerNode }}
+        {{- with $a.nodeAffinity }}
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.podAntiAffinityPerNode }}
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
@@ -358,45 +363,26 @@ spec:
                 operator: In
                 values:
                 - {{ include "blch-node.fullname" . }}
-            topologyKey: "kubernetes.io/hostname"
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                - {{ include "blch-node.fullname" . }}
-            topologyKey: "topology.kubernetes.io/zone"
-      {{- end }}
-      {{- if .Values.affinity }}
-        {{- if .Values.affinity.nodeAffinity }}
-        nodeAffinity:
-          {{- toYaml .Values.affinity.nodeAffinity | nindent 10 }}
-        {{- end }}
-        {{- if and .Values.affinity.podAntiAffinity (not .Values.podAntiAffinityPerNode) }}
+            topologyKey: kubernetes.io/hostname
+        {{- else }}
+        {{- with $a.podAntiAffinity }}
         podAntiAffinity:
-          {{- toYaml .Values.affinity.podAntiAffinity | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if .Values.affinity.podAffinity }}
+        {{- end }}
+        {{- if .Values.podAffinityPerRegion }}
         podAffinity:
-          {{- toYaml .Values.affinity.podAffinity | nindent 10 }}
-        {{- end }}
-      {{- else if and .Values.nodeSelectorKey (ne .Values.nodeSelectorKey "") }}
-        nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              {{- with .Values.affinityAdditionalMatches }}
-              {{ toYaml . | nindent 14 }}
-              {{- end }}
-              - key: blch
-                operator: In
-                values:
-                - "true"
-              - key: {{ .Values.nodeSelectorKey }}
-                operator: In
-                values:
-                - "true"
-      {{- end }}
+          - labelSelector:
+              matchLabels:
+                {{- include "blch-node.labels" . | nindent 16 }}
+            topologyKey: topology.kubernetes.io/region
+        {{- else }}
+        {{- with $a.podAffinity }}
+        podAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
       {{- end }}
       {{- with .Values.priorityClassName }}
       priorityClassName: {{ . }}
