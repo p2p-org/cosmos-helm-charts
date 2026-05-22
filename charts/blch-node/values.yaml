@@ -181,6 +181,27 @@ service:
       port: 9091
       containerPort: 9091
       protocol: TCP
+    # [Optional] Additional ports to expose on the RPC Service and node container.
+    # Useful for EVM-style chains (Sei, Story, 0G, Cronos EVM) that expose JSON-RPC on
+    # ports outside the standard rpc/grpc/rest/ws set. Defaults to empty: existing
+    # networks render identically.
+    #
+    # Each entry supports:
+    #   name           (required) — port name, also used as targetPort if not set
+    #   port           (required) — Service port
+    #   containerPort  (optional) — defaults to .port
+    #   targetPort     (optional) — defaults to .name
+    #   protocol       (optional) — defaults to TCP
+    #
+    # To expose the port externally via Ingress/HTTPRoute, also add an entry under
+    # `endpoints` with `enabled: true` and `servicePort: <port>`.
+    #
+    # Example (Sei EVM HTTP JSON-RPC):
+    #   additional:
+    #     - name: evm-rpc
+    #       port: 8545
+    #       containerPort: 8545
+    additional: []
 # Optional additional configuration for the services
 # maxP2PExternalAddresses: 1
 # additionalServiceConfig:

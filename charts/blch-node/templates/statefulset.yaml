@@ -244,6 +244,11 @@ spec:
         - name: ws
           containerPort: {{ .Values.service.ports.ws.containerPort }}
           protocol: {{ .Values.service.ports.ws.protocol }}
+        {{- range .Values.service.ports.additional }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort | default .port }}
+          protocol: {{ .protocol | default "TCP" }}
+        {{- end }}
         volumeMounts:
         {{- include "blch-node.nodeContainerVolumeMounts" . | nindent 10 }}
       - name: healthcheck

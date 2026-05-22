@@ -34,6 +34,12 @@ spec:
       port: {{ .Values.service.ports.ws.port }}
       targetPort: ws
       protocol: {{ .Values.service.ports.ws.protocol }}
+    {{- range .Values.service.ports.additional }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort | default .name }}
+      protocol: {{ .protocol | default "TCP" }}
+    {{- end }}
   selector:
     {{- include "blch-node.labels" . | nindent 4 }}
 {{ range $i := until (int .Values.replicas) }}
