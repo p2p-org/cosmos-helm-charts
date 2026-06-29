@@ -158,14 +158,14 @@ spec:
         {{- include "blch-node.initContainerVolumeMounts" . | nindent 10 }}
       {{- end }}
       {{- with .Values.additionalInitContainers }}
-        {{- range $key, $value := . }}
-        - name: "{{ $key }}"
-          {{ toYaml $value | nindent 10 }}
-          env:
-          {{- include "blch-node.containerEnv" $ | nindent 10 }}
-          volumeMounts:
-          {{- include "blch-node.initContainerVolumeMounts" $ | nindent 10 }}
-        {{- end }}
+      {{- range $key, $value := . }}
+      - name: "{{ $key }}"
+        {{- toYaml $value | nindent 8 }}
+        env:
+        {{- include "blch-node.containerEnv" $ | nindent 8 }}
+        volumeMounts:
+        {{- include "blch-node.initContainerVolumeMounts" $ | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- if .Values.unwrapVaultSecret.enabled }}
       - name: unwrap-vault-secret
