@@ -56,6 +56,14 @@ Based on cosmosfullnode.yaml pod template
 - name: CHAIN_BINARY
   value: {{ . | quote }}
 {{- end }}
+{{- with .Values.blch.chainIdFlag }}
+- name: CHAIN_ID_FLAG
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.blch.monikerFlag }}
+- name: MONIKER_FLAG
+  value: {{ . | quote }}
+{{- end }}
 - name: NODE_NAME
   valueFrom:
     fieldRef:
