@@ -221,6 +221,14 @@ blch:
   network: ""
   name: ""
   binary: "gaiad"
+  # chainIdFlag: flag passed to `<binary> init` for the chain/network id.
+  # Defaults to --chain-id (Cosmos SDK standard). Override to --network for
+  # chains like Story that use a different convention.
+  chainIdFlag: ""
+  # monikerFlag: flag passed to `<binary> init` for the node moniker.
+  # Defaults to empty (positional arg, Cosmos SDK standard). Set to --moniker
+  # for chains like Story that require an explicit flag.
+  monikerFlag: ""
   skipInvariants: ""
   # Disable the --api.address flag in the start command (useful for chains like Cysic that don't support this flag)
   # Set to true for chains that use --api.enable instead, or configure API address in app.toml

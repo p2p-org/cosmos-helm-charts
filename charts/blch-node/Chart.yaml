@@ -2,6 +2,6 @@ apiVersion: v2
 name: blch-node
 description: A Helm chart for deploying a blockchain node
 type: application
-version: 0.0.0-development
+version: 1.14.0
 appVersion: "1.0"
 
