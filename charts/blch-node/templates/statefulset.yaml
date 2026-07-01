@@ -203,8 +203,12 @@ spec:
           sleep 10
           {{- end }}
           {{ .Values.blch.binary }} start \
+          {{- if not .Values.blch.disableRpcLaddrFlag }}
           --rpc.laddr="tcp://0.0.0.0:{{ .Values.service.ports.rpc.containerPort }}" \
+          {{- end }}
+          {{- if not .Values.blch.disableGrpcAddressFlag }}
           --grpc.address="0.0.0.0:{{ .Values.service.ports.grpc.containerPort }}" \
+          {{- end }}
           {{- if not .Values.blch.disableApiAddressFlag }}
           --api.address="tcp://0.0.0.0:{{ .Values.service.ports.rest.containerPort }}" \
           {{- end }}                    

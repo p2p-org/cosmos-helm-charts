@@ -230,6 +230,10 @@ blch:
   # for chains like Story that require an explicit flag.
   monikerFlag: ""
   skipInvariants: ""
+  # Disable the --rpc.laddr flag in the start command (Story and other non-Cosmos-SDK chains)
+  disableRpcLaddrFlag: false
+  # Disable the --grpc.address flag in the start command (Story and other non-Cosmos-SDK chains)
+  disableGrpcAddressFlag: false
   # Disable the --api.address flag in the start command (useful for chains like Cysic that don't support this flag)
   # Set to true for chains that use --api.enable instead, or configure API address in app.toml
   disableApiAddressFlag: false
