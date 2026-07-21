@@ -397,6 +397,14 @@ spec:
       priorityClassName: {{ . }}
       {{- end }}
       volumes:
+      {{- if .Values.existingDataClaimName }}
+      {{- if gt (int .Values.replicas) 1 }}
+      {{- fail "existingDataClaimName is only supported with replicas: 1" }}
+      {{- end }}
+      - name: pvc
+        persistentVolumeClaim:
+          claimName: {{ .Values.existingDataClaimName }}
+      {{- end }}
       - name: vol-system-tmp
         emptyDir: {}
       - name: vol-tmp
@@ -454,6 +462,7 @@ spec:
       {{- end }}
       {{- end }}
   volumeClaimTemplates:
+  {{- if not .Values.existingDataClaimName }}
   - metadata:
       name: pvc
     spec:
@@ -464,6 +473,7 @@ spec:
       {{- with .Values.storageClassName }}
       storageClassName: {{ . }}
       {{- end }}
+  {{- end }}
   - metadata:
       name: pvc-config
     spec:

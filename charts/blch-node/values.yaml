@@ -22,6 +22,11 @@ replicas: "1"
 maxUnavailable: ""
 storage: "300Gi"
 storageClassName: ""
+# [Optional] Reuse an existing PVC for the data volume ("pvc") instead of
+# provisioning one via volumeClaimTemplate. Useful for binding to an existing disk in some use cases.
+# Only supported with one replica as ReadWriteOnce volume cannot be used by more than one replica.
+# Leave empty to use the managed volumeClaimTemplate (default).
+existingDataClaimName: ""
 # [Optional] Tolerations for the pod
 tolerations: []
 
