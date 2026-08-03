@@ -57,7 +57,7 @@ spec:
           env:
             {{- toYaml .Values.env | nindent 12 }}
           {{- end }}
-          {{- if or .Values.externalSecrets .Values.envFrom }}
+          {{- if or .Values.externalSecrets .Values.vaultStaticSecrets .Values.envFrom }}
           envFrom:
             {{- if .Values.envFrom }}
             {{- toYaml .Values.envFrom | nindent 12 }}
@@ -66,6 +66,12 @@ spec:
             {{- range .Values.externalSecrets }}
             - secretRef:
                 name: {{ .target.name }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.vaultStaticSecrets }}
+            {{- range .Values.vaultStaticSecrets }}
+            - secretRef:
+                name: {{ .destination.name }}
             {{- end }}
             {{- end }}
           {{- end }}
