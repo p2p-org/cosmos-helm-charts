@@ -62,23 +62,36 @@ env: []
 envFrom: []
 
 # External Secrets configuration (for OCI secret store)
-externalSecrets:
-  - name: cosmos-watcher-secrets
-    refreshInterval: 1h
-    secretStoreRef:
-      kind: ClusterSecretStore
-      name: oci-secrets
-    target:
-      name: cosmos-watcher-secrets
-      creationPolicy: Owner
-    data:
-      - secretKey: SLACK_WEBHOOK_URL
-        remoteRef:
-          key: SLACK_WEBHOOK_URL
-      - secretKey: GITHUB_TOKEN
-        remoteRef:
-          key: GITHUB_API_SECRET
-          property: GITHUB_SECRET
+# externalSecrets:
+#   - name: cosmos-watcher-secrets
+#     refreshInterval: 1h
+#     secretStoreRef:
+#       kind: ClusterSecretStore
+#       name: oci-secrets
+#     target:
+#       name: cosmos-watcher-secrets
+#       creationPolicy: Owner
+#     data:
+#       - secretKey: SLACK_WEBHOOK_URL
+#         remoteRef:
+#           key: SLACK_WEBHOOK_URL
+#       - secretKey: GITHUB_TOKEN
+#         remoteRef:
+#           key: GITHUB_API_SECRET
+#           property: GITHUB_SECRET
+externalSecrets: []
+
+# Vault Static Secrets configuration (Vault Secrets Operator)
+# Example:
+# vaultStaticSecrets:
+#   - name: cosmos-watcher-vault-secrets
+#     mount: kv
+#     path: cosmos/cosmos-watcher
+#     refreshAfter: 1h
+#     vaultAuthRef: vault-auth  # optional, defaults to the operator's default VaultAuth
+#     destination:
+#       name: cosmos-watcher-secrets
+vaultStaticSecrets: []
 
 # ConfigMap for config.yaml
 configMap:
