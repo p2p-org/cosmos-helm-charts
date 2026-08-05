@@ -1,7 +1,11 @@
 {{- if .Values.useGatewayAPI }}
 {{- if and .Values.gateway.name .Values.gateway.namespace }}
 {{- range $key, $val := .Values.endpoints }}
-{{- $enabled := default true $val.enabled }}
+{{- $val = default (dict) $val }}
+{{- $enabled := true }}
+{{- if hasKey $val "enabled" }}
+{{- $enabled = $val.enabled }}
+{{- end }}
 {{- if $enabled }}
 {{- $servicePort := $val.servicePort }}
 {{- if not $servicePort }}

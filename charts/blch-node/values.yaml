@@ -20,6 +20,7 @@ imagePullPolicy: "IfNotPresent"
 #   - name: "my-secret-2"
 replicas: "1"
 maxUnavailable: ""
+podManagementPolicy: "OrderedReady"
 storage: "300Gi"
 storageClassName: ""
 # [Optional] Reuse an existing PVC for the data volume ("pvc") instead of
