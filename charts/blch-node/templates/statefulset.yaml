@@ -12,6 +12,7 @@ metadata:
 spec:
   serviceName: {{ include "blch-node.fullname" . }}-rpc
   replicas: {{ .Values.replicas }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
   selector:
     matchLabels:
       {{- include "blch-node.labels" . | nindent 6 }}
