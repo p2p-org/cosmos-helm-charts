@@ -323,13 +323,7 @@ healthcheck:
 #           valuetype: gauge
 monitoring:
   enabled: false
-  # Provide a public RPC endpoint to compare the block height with.
-  publicRpcEndpoint: ""
-  alerts:
-    enabled: false
-    growingBlockHeightDifference: 25
-    maximumBlockHeightDifference: 100
-    maximumPeerDropPercentage: 25
+  port: 26660
 
 # Optional configuration for hosting public snapshots. The snapshot solution is not part of this chart.
 publishSnapshot:

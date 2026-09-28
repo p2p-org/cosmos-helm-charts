@@ -10,14 +10,19 @@ data:
     {{- if eq .Values.blch.nodeType "sentry" }}
     priv_validator_laddr = "tcp://0.0.0.0:1234"
     {{- end }}
-    {{- if .Values.blch.config }}
-    {{- if .Values.blch.config.seeds }}
-    seeds = {{ .Values.blch.config.seeds | quote }}
+    {{- if .Values.monitoring.enabled }}
+    [instrumentation]
+    prometheus = true
+    prometheus_listen_addr = ":{{ .Values.monitoring.port }}"
     {{- end }}
-    {{- if .Values.blch.config.peers }}
-    peers = {{ .Values.blch.config.peers | quote }}
+    {{- with .Values.blch.config }}
+    {{- if .seeds }}
+    seeds = {{ .seeds | quote }}
     {{- end }}
-    {{- if .Values.blch.config.kvIndexerEnabled }}
+    {{- if .peers }}
+    peers = {{ .peers | quote }}
+    {{- end }}
+    {{- if .kvIndexerEnabled }}
     [tx_index]
     indexer = "kv"
     {{- end }}
