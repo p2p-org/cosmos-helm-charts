@@ -22,5 +22,7 @@ fi
 
 echo "Initializing into tmp dir for downstream processing..."
 # cleanup old tmp in case it had leftovers
-rm -rf "$HOME/.tmp/*"
+if [ -d "$HOME/.tmp" ]; then
+  rm -rf "$HOME/.tmp/*"
+fi
 $CHAIN_BINARY init ${CHAIN_ID_FLAG} $CHAIN_ID ${MONIKER_FLAG} $NODE_NAME --home "$HOME/.tmp"

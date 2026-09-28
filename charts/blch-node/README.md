@@ -16,18 +16,15 @@ This chart deploys a complete node including:
 - Optional HTTPRoute support for Gateway API (when `useGatewayAPI: true`)
 - Optional sentry mode (remote signer is required and not included in this chart)
 - Optional Hashicorp Vault secret injection
-- Optional prometheus monitoring for:
-  - Default CometBFT metrics
-  - Latest block height compared to a given public RPC endpoint
-  - Endpoint monitoring for the deployed RPC endpoint
+- Optional prometheus monitoring for default CometBFT metrics
+- Optional support for cosmos-exporter
 
 ## Prerequisites
 
 - Helm 3.2.0+
 - Ingress Controller (nginx) - **OR** Gateway API with Gateway resource (when using `useGatewayAPI: true`)
 - Cert-manager (optional, for TLS)
-- Prometheus blackbox exporter (optional, for monitoring)
-- Prometheus json exporter (optional, for monitoring)
+- Cosmos-exporter (Optional, for enahnced monitoring)
 
 ## Installation
 
@@ -118,12 +115,8 @@ When `useGatewayAPI: true`, the chart will create HTTPRoute resources instead of
 | imagePullSecrets | string | `""` |  |
 | imageTag | string | `""` |  |
 | maxUnavailable | string | `""` |  |
-| monitoring.alerts.enabled | bool | `false` |  |
-| monitoring.alerts.growingBlockHeightDifference | int | `25` |  |
-| monitoring.alerts.maximumBlockHeightDifference | int | `100` |  |
-| monitoring.alerts.maximumPeerDropPercentage | int | `25` |  |
 | monitoring.enabled | bool | `false` |  |
-| monitoring.publicRpcEndpoint | string | `""` |  |
+| monitoring.port | int | `26660` |  |
 | nodeSelectorKey | string | `""` |  |
 | podAntiAffinityPerNode | bool | `true` |  |
 | publishSnapshot.cronJobSchedule | string | `"0 */12 * * *"` |  |
