@@ -63,7 +63,7 @@ spec:
         command: ["sh"]
         args:
         - -c
-        - rm -rf "$HOME/.tmp"
+        - find "$HOME/.tmp" -mindepth 1 -delete
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         volumeMounts:
