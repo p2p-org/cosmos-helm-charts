@@ -63,7 +63,7 @@ spec:
         command: ["sh"]
         args:
         - -c
-        - rm -rf "$HOME/.tmp/*"
+        - rm -rf "$HOME/.tmp"
         env:
         {{- include "blch-node.containerEnv" . | nindent 10 }}
         volumeMounts:
