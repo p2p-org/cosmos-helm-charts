@@ -21,6 +21,6 @@ else
 fi
 
 echo "Initializing into tmp dir for downstream processing..."
-# $HOME/.tmp is removed by the clean-init container (toolkit image); don't use rm here,
+# $HOME/.tmp (emptyDir) is emptied by the clean-init container (toolkit image); don't use rm here,
 # chain images may not ship a working one.
 $CHAIN_BINARY init ${CHAIN_ID_FLAG} $CHAIN_ID ${MONIKER_FLAG} $NODE_NAME --home "$HOME/.tmp"
