@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write # release automation (release PRs / issue comments)
+  issues: write # release automation (release PRs / issue comments)
+  pull-requests: write # release automation (release PRs / issue comments)
+
 jobs:
   check-changes:
     runs-on: ubuntu-latest
