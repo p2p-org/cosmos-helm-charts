@@ -333,9 +333,21 @@ spec:
         envFrom:
           {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if .Values.sidecar.configMaps }}
+        {{- if or .Values.sidecar.configMaps .Values.sidecar.volumeClaims }}
         volumeMounts:
           {{- range .Values.sidecar.configMaps }}
+          {{- if .enabled }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            {{- with .subPath }}
+            subPath: {{ . }}
+            {{- end }}
+            {{- if .readOnly }}
+            readOnly: {{ .readOnly }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- range .Values.sidecar.volumeClaims }}
           {{- if .enabled }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
@@ -462,6 +474,18 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+      {{- if .Values.sidecar.enabled }}
+      {{- range .Values.sidecar.volumeClaims }}
+      {{- if and .enabled .existingClaim }}
+      {{- if gt (int $.Values.replicas) 1 }}
+      {{- fail (printf "sidecar.volumeClaims[%s].existingClaim is only supported with replicas: 1" .name) }}
+      {{- end }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .existingClaim }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
   volumeClaimTemplates:
   {{- if not .Values.existingDataClaimName }}
   - metadata:
@@ -485,3 +509,19 @@ spec:
       {{- with .Values.storageClassName }}
       storageClassName: {{ . }}
       {{- end }}
+  {{- if .Values.sidecar.enabled }}
+  {{- range .Values.sidecar.volumeClaims }}
+  {{- if and .enabled (not .existingClaim) }}
+  - metadata:
+      name: {{ .name }}
+    spec:
+      accessModes: {{ toYaml (.accessModes | default (list "ReadWriteOnce")) | nindent 8 }}
+      resources:
+        requests:
+          storage: {{ required (printf "sidecar.volumeClaims[%s].storage is required" .name) .storage }}
+      {{- with (.storageClassName | default $.Values.storageClassName) }}
+      storageClassName: {{ . }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
