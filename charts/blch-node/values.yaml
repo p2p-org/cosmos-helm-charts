@@ -130,6 +130,23 @@ sidecar:
   #     data:
   #       app.properties: |
   #         app.name=sidecar
+  volumeClaims: []
+  # Example PVC configuration (one PVC per replica via volumeClaimTemplates):
+  # NOTE: volumeClaimTemplates are immutable; adding/removing entries on an existing
+  # StatefulSet requires `kubectl delete sts <name> --cascade=orphan` before upgrading.
+  # volumeClaims:
+  #   - name: "sidecar-data"
+  #     enabled: true
+  #     mountPath: "/data"
+  #     storage: "10Gi"
+  #     storageClassName: ""         # defaults to .Values.storageClassName
+  #     accessModes: ["ReadWriteOnce"] # default
+  #     subPath: ""
+  #     readOnly: false
+  #   - name: "sidecar-shared"
+  #     enabled: true
+  #     mountPath: "/shared"
+  #     existingClaim: "my-existing-pvc" # use an existing PVC instead (replicas: 1 only)
   env: []
   envFrom: []
   resources: {}
